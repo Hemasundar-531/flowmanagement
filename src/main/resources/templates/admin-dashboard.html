@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        .app-shell{
+            display:flex;
+            min-height:100vh;
+        }
+
+        .sidebar{
+            width:240px;
+            background:linear-gradient(180deg, #132a63, #1f3c88);
+            color:#fff;
+            padding:20px 16px;
+            position:sticky;
+            top:0;
+            height:100vh;
+        }
+
+        .sidebar .brand{
+            font-weight:800;
+            font-size:16px;
+            letter-spacing:0.4px;
+            margin-bottom:18px;
+        }
+
+        .sidebar .brand span{
+            display:block;
+            font-weight:400;
+            font-size:11px;
+            color:rgba(255,255,255,0.7);
+            margin-top:4px;
+        }
+
+        .nav{
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+        }
+
+        .nav-link{
+            color:#e9efff;
+            text-decoration:none;
+            font-size:13px;
+            padding:10px 12px;
+            border-radius:10px;
+            background:rgba(255,255,255,0.08);
+        }
+
+        .nav-link:hover{
+            background:rgba(255,255,255,0.16);
+        }
+
+        .logout-form{
+            margin-top:18px;
+        }
+
+        .logout-btn{
+            width:100%;
+            padding:10px 12px;
+            border-radius:10px;
+            border:none;
+            background:#f97316;
+            color:#fff;
+            font-weight:700;
+            cursor:pointer;
+        }
+
+        .app-content{
+            flex:1;
+            padding:24px;
+        }
+
+        :root{
+            --ink:#0f1b2d;
+            --slate:#5c6b7a;
+            --primary:#1f3c88;
+            --primary-deep:#162d6a;
+            --accent:#0aa6a6;
+            --accent-soft:#e6f6f6;
+            --panel:#ffffff;
+            --bg:#f4f7fb;
+            --shadow:0 18px 40px rgba(12, 31, 63, 0.12);
+            --radius:18px;
+            --sunrise:#f59e0b;
+            --coral:#f97316;
+            --violet:#7c3aed;
+        }
+
+        *{box-sizing:border-box;}
+
+        body{
+            margin:0;
+            font-family:"Poppins","Segoe UI",Tahoma,sans-serif;
+            color:var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(124,58,237,0.12), transparent 45%),
+                radial-gradient(circle at 20% 80%, rgba(245,158,11,0.14), transparent 50%),
+                var(--bg);
+            min-height:100vh;
+        }
+
+        .page{
+            position:relative;
+            min-height:100vh;
+            overflow:hidden;
+        }
+
+        .page::before,
+        .page::after{
+            content:"";
+            position:absolute;
+            border-radius:50%;
+            filter:blur(10px);
+            opacity:0.6;
+            z-index:0;
+        }
+
+        .page::before{
+            width:420px;
+            height:420px;
+            background:rgba(124,58,237,0.18);
+            top:-120px;
+            right:-80px;
+        }
+
+        .page::after{
+            width:380px;
+            height:380px;
+            background:rgba(245,158,11,0.18);
+            bottom:-160px;
+            left:-120px;
+        }
+
+        .topbar{
+            position:relative;
+            z-index:1;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:16px 28px;
+            background:linear-gradient(90deg, #ffffff, #f8f6ff);
+            border-bottom:1px solid #e5e9f2;
+        }
+
+        .brand{
+            display:flex;
+            align-items:center;
+            gap:14px;
+        }
+
+        .logos{
+            display:flex;
+            align-items:center;
+            gap:10px;
+        }
+
+        .logo-img{
+            height:44px;
+            width:auto;
+            display:block;
+        }
+
+        .brand-title{
+            font-weight:700;
+            font-size:16px;
+        }
+
+        .brand-sub{
+            font-size:11px;
+            color:var(--slate);
+        }
+
+        .user{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            color:var(--slate);
+            font-size:12px;
+        }
+
+        .profile{
+            position:relative;
+        }
+
+        .avatar{
+            width:34px;
+            height:34px;
+            border-radius:50%;
+            background:linear-gradient(135deg, #f1c4c4, #f0a1a1);
+        }
+
+        .profile-btn{
+            border:none;
+            background:transparent;
+            padding:0;
+            cursor:pointer;
+        }
+
+        .profile-menu{
+            position:absolute;
+            right:0;
+            top:44px;
+            background:#fff;
+            border:1px solid #e5e9f2;
+            border-radius:12px;
+            box-shadow:0 14px 28px rgba(12, 31, 63, 0.14);
+            display:none;
+            min-width:160px;
+            z-index:5;
+        }
+
+        .profile-menu button{
+            width:100%;
+            border:none;
+            background:transparent;
+            padding:10px 12px;
+            text-align:left;
+            font-size:12px;
+            color:var(--ink);
+            cursor:pointer;
+        }
+        .profile-menu form{
+            margin:0;
+        }
+
+        .profile-menu button:hover{
+            background:#f4f7fb;
+        }
+
+        .logout{
+            color:#d0453d;
+        }
+
+        .hero{
+            position:relative;
+            z-index:1;
+            text-align:center;
+            padding:48px 16px 24px;
+        }
+
+        .hero h1{
+            margin:0 0 8px;
+            font-size:36px;
+            color:var(--primary-deep);
+        }
+
+        .hero p{
+            margin:0;
+            color:var(--slate);
+            font-size:14px;
+        }
+
+        .status-pill{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            margin-top:14px;
+            padding:6px 12px;
+            border-radius:999px;
+            background:linear-gradient(90deg, rgba(10,166,166,0.18), rgba(124,58,237,0.18));
+            color:#176b7a;
+            font-size:12px;
+            font-weight:600;
+        }
+
+        .status-dot{
+            width:8px;
+            height:8px;
+            border-radius:50%;
+            background:var(--accent);
+        }
+
+        .cards{
+            position:relative;
+            z-index:1;
+            max-width:980px;
+            margin:20px auto 0;
+            padding:0 18px 40px;
+            display:grid;
+            grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+            gap:24px;
+        }
+
+        .card{
+            background:var(--panel);
+            border-radius:var(--radius);
+            padding:24px;
+            box-shadow:var(--shadow);
+            border:1px solid #e7ebf3;
+            position:relative;
+            overflow:hidden;
+        }
+
+        .card::after{
+            content:"";
+            position:absolute;
+            top:-30px;
+            right:-40px;
+            width:140px;
+            height:140px;
+            background:radial-gradient(circle, rgba(245,158,11,0.18), transparent 70%);
+            z-index:0;
+        }
+
+        .card > *{position:relative; z-index:1;}
+
+        .card-icon{
+            width:46px;
+            height:46px;
+            border-radius:12px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:700;
+            color:#fff;
+            letter-spacing:0.5px;
+        }
+
+        .icon-emp{background:linear-gradient(135deg, #12b981, #34d399);}
+        .icon-fms{background:linear-gradient(135deg, #7c3aed, #4f46e5);}
+
+        .card h3{
+            margin:14px 0 8px;
+            font-size:18px;
+            color:var(--primary-deep);
+        }
+
+        .card p{
+            margin:0 0 18px;
+            color:var(--slate);
+            font-size:13px;
+            line-height:1.5;
+        }
+
+        .btn{
+            width:100%;
+            padding:12px 14px;
+            border:none;
+            border-radius:10px;
+            color:#fff;
+            font-weight:700;
+            cursor:pointer;
+            font-size:14px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+        }
+
+        .btn-emp{background:linear-gradient(135deg, #10b981, #0f9f77);}
+        .btn-fms{background:linear-gradient(135deg, #7c3aed, #4f46e5);}
+
+        .footer{
+            position:relative;
+            z-index:1;
+            text-align:center;
+            color:#8a97a8;
+            font-size:11px;
+            padding-bottom:16px;
+        }
+
+        .icon{
+            width:18px;
+            height:18px;
+            fill:currentColor;
+            flex:0 0 auto;
+        }
+
+        .breadcrumbs{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            font-size:12px;
+            color:var(--slate);
+            justify-content:center;
+            margin-top:12px;
+        }
+
+        .breadcrumbs a{
+            color:var(--primary-deep);
+            text-decoration:none;
+            font-weight:600;
+        }
+
+        .breadcrumbs span{
+            color:#9aa7b6;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-shell">
+    
+        <main class="app-content">
+    <div class="page">
+    <div class="topbar">
+        <div class="brand">
+            <div class="logos">
+                <img class="logo-img" src="/img/FLM7.jpeg" alt="Here Quality Excellence Logo">
+                <img class="logo-img" src="/img/FMS8.jpeg" alt="25 Years Service Excellence Logo">
+            </div>
+            <div>
+                <div class="brand-title">HQEPL</div>
+                <div class="brand-sub">Flow Management System</div>
+            </div>
+        </div>
+        <div class="user">
+            <div>
+                <div style="font-weight:600;color:#1b2b40;">Admin User</div>
+                <div>Super Administrator</div>
+            </div>
+            <div class="profile">
+                <button class="profile-btn" type="button" onclick="toggleProfileMenu('profileMenuAdmin')">
+                    <div class="avatar"></div>
+                </button>
+                <div id="profileMenuAdmin" class="profile-menu">
+                    <button type="button" onclick="editProfile()">Edit Profile</button>
+                    <form method="post" action="/logout" onsubmit="return confirm('Are you sure you want to logout?')">
+                        <button class="logout" type="submit">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+        </main>
+    </div>
+
+    <div class="hero">
+        <h1>Admin Dashboard</h1>
+        <p>Manage employees and workflows efficiently within the HQEPL ecosystem.</p>
+        <div class="status-pill">
+            <span class="status-dot"></span>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2a9 9 0 1 0 9 9 9 9 0 0 0-9-9Zm4.1 7.6-4.6 5a1 1 0 0 1-1.5.1l-2.1-2.1a1 1 0 1 1 1.4-1.4l1.4 1.4 3.9-4.2a1 1 0 1 1 1.5 1.2Z"/>
+            </svg>
+            System Operational
+        </div>
+        <div class="breadcrumbs">
+            <a href="/admin/dashboard">Home</a>
+            <span>›</span>
+            <span>Dashboard</span>
+        </div>
+    </div>
+
+    <div class="cards">
+        <div class="card">
+            <div class="card-icon icon-emp">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.3 0-8 1.6-8 5v1a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1c0-3.4-4.7-5-8-5Z"/>
+                </svg>
+            </div>
+            <h3>Employee Manage</h3>
+            <p>Oversee your workforce. Manage profiles, roles, departments, and organizational hierarchy.</p>
+            <button class="btn btn-emp" onclick="location.href='/admin/employees'">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M13 5a1 1 0 0 1 1.7-.7l5 5a1 1 0 0 1 0 1.4l-5 5A1 1 0 0 1 13 15V9a1 1 0 0 1 1-1h-7a1 1 0 1 1 0-2h7a1 1 0 0 1-1-1Z"/>
+                </svg>
+                Manage Employees
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="card-icon icon-fms">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 6a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v2H3V6Zm0 5h20v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7Z"/>
+                </svg>
+            </div>
+            <h3>FMS Manage</h3>
+            <p>Design and deploy workflows. Monitor submissions, review tasks, and analyze operational data.</p>
+            <button class="btn btn-fms" onclick="location.href='/admin/fms-list'">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M13 5a1 1 0 0 1 1.7-.7l5 5a1 1 0 0 1 0 1.4l-5 5A1 1 0 0 1 13 15V9a1 1 0 0 1 1-1h-7a1 1 0 1 1 0-2h7a1 1 0 0 1-1-1Z"/>
+                </svg>
+                Manage Flows
+            </button>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2026 HQEPL - Here Quality Excellence Flow Management System. All rights reserved.
+    </div>
+</div>
+
+<script>
+    function toggleProfileMenu(id){
+        const menu = document.getElementById(id);
+        const isOpen = menu.style.display === "block";
+        document.querySelectorAll(".profile-menu").forEach(m => m.style.display = "none");
+        menu.style.display = isOpen ? "none" : "block";
+    }
+
+    function editProfile(){
+        alert("Edit Profile clicked");
+    }
+
+    document.addEventListener("click", function(event){
+        if (!event.target.closest(".profile")) {
+            document.querySelectorAll(".profile-menu").forEach(m => m.style.display = "none");
+        }
+    });
+
+</script>
+
+</body>
+</html>

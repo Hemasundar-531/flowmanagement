@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>FMS Process</title>
+
+    <style>
+        .app-shell{
+            display:flex;
+            min-height:100vh;
+        }
+
+        .sidebar{
+            width:240px;
+            background:linear-gradient(180deg, #132a63, #1f3c88);
+            color:#fff;
+            padding:20px 16px;
+            position:sticky;
+            top:0;
+            height:100vh;
+        }
+
+        .sidebar .brand{
+            font-weight:800;
+            font-size:16px;
+            letter-spacing:0.4px;
+            margin-bottom:18px;
+        }
+
+        .sidebar .brand span{
+            display:block;
+            font-weight:400;
+            font-size:11px;
+            color:rgba(255,255,255,0.7);
+            margin-top:4px;
+        }
+
+        .nav{
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+        }
+
+        .nav-link{
+            color:#e9efff;
+            text-decoration:none;
+            font-size:13px;
+            padding:10px 12px;
+            border-radius:10px;
+            background:rgba(255,255,255,0.08);
+        }
+
+        .nav-link:hover{
+            background:rgba(255,255,255,0.16);
+        }
+
+        .logout-form{
+            margin-top:18px;
+        }
+
+        .logout-btn{
+            width:100%;
+            padding:10px 12px;
+            border-radius:10px;
+            border:none;
+            background:#f97316;
+            color:#fff;
+            font-weight:700;
+            cursor:pointer;
+        }
+
+        .app-content{
+            flex:1;
+            padding:24px;
+        }
+        :root{
+            --ink:#0f1b2d;
+            --slate:#5a6b7c;
+            --navy:#1f3c88;
+            --navy-deep:#152d6c;
+            --teal:#0aa6a6;
+            --mint:#e7f7f7;
+            --bg:#f2f6fb;
+            --panel:#ffffff;
+            --shadow:0 16px 34px rgba(10, 23, 47, 0.12);
+        }
+
+        body{
+            font-family:"Poppins","Segoe UI",Tahoma,sans-serif;
+            background:
+                radial-gradient(circle at 10% 12%, rgba(10,166,166,0.12), transparent 45%),
+                radial-gradient(circle at 90% 6%, rgba(31,60,136,0.16), transparent 45%),
+                var(--bg);
+            margin:0;
+            color:var(--ink);
+        }
+
+        .header{
+            background:linear-gradient(120deg, var(--navy), #2847a7 55%, #1b66b0);
+            color:white;
+            padding:25px;
+            text-align:center;
+            position:relative;
+            overflow:hidden;
+        }
+
+        .header::after{
+            content:"";
+            position:absolute;
+            right:-80px;
+            top:-90px;
+            width:220px;
+            height:220px;
+            background:rgba(255,255,255,0.08);
+            border-radius:50%;
+        }
+
+        .container{
+            padding:40px;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            background:var(--panel);
+            border:1px solid #dde3ec;
+        }
+
+        th, td{
+            padding:16px 12px;
+            border:1px solid #dde3ec;
+            text-align:center;
+        }
+
+        th{
+            background:var(--navy);
+            color:white;
+            letter-spacing:0.2px;
+        }
+
+        input{
+            padding:10px 12px;
+            width:92%;
+            border:1px solid #cfd6dd;
+            border-radius:2px;
+            background:#fff;
+            font-size:14px;
+        }
+
+        input:focus{
+            outline:none;
+            border-color:var(--navy);
+            box-shadow:0 0 0 2px rgba(31,60,136,0.15);
+        }
+
+        .actions{
+            margin-top:20px;
+            display:flex;
+            justify-content:flex-end;
+            gap:12px;
+        }
+
+        .save-btn{
+            padding:10px 25px;
+            background:linear-gradient(135deg, #22c55e, #16a34a);
+            color:white;
+            border:none;
+            border-radius:5px;
+            cursor:pointer;
+            box-shadow:0 10px 20px rgba(34,197,94,0.3);
+        }
+
+        .next-btn{
+            margin-top:20px;
+            padding:10px 25px;
+            background:linear-gradient(135deg, #3b82f6, #2563eb);
+            color:white;
+            border:none;
+            border-radius:5px;
+            cursor:pointer;
+            box-shadow:0 10px 20px rgba(37,99,235,0.25);
+        }
+
+        .top-actions{
+            display:flex;
+            justify-content:flex-end;
+            margin-bottom:15px;
+        }
+
+        .add-btn{
+            background:linear-gradient(135deg, #22c55e, #16a34a);
+            color:white;
+            border:none;
+            width:40px;
+            height:40px;
+            font-size:24px;
+            border-radius:50%;
+            cursor:pointer;
+            box-shadow:0 8px 18px rgba(34,197,94,0.3);
+        }
+
+        .summary-grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));
+            gap:24px;
+        }
+
+        .summary-card{
+            background:var(--panel);
+            border:1px solid #dde3ec;
+            border-radius:10px;
+            padding:16px;
+            box-shadow:var(--shadow);
+        }
+
+        .summary-title{
+            margin:0 0 12px;
+            font-size:16px;
+            color:var(--navy);
+            font-weight:700;
+        }
+
+        .edit-btn{
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            padding:8px 14px;
+            border-radius:8px;
+            background:linear-gradient(135deg, #f59e0b, #f97316);
+            color:#fff;
+            text-decoration:none;
+            font-weight:600;
+            font-size:13px;
+            box-shadow:0 10px 20px rgba(245,158,11,0.3);
+        }
+
+        .icon{
+            width:16px;
+            height:16px;
+            fill:currentColor;
+            flex:0 0 auto;
+        }
+
+        .icon-lg{
+            width:18px;
+            height:18px;
+        }
+
+        .breadcrumbs{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            font-size:12px;
+            color:var(--slate);
+            margin:0 0 18px;
+        }
+
+        .breadcrumbs a{
+            color:var(--navy-deep);
+            text-decoration:none;
+            font-weight:600;
+        }
+
+        .breadcrumbs span{
+            color:#9aa7b6;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app-shell">
+    <main class="app-content">
+
+<div class="header">
+    <h2>HQEPL – Flow Management System</h2>
+    <h3>ADMIN DASHBOARD</h3>
+</div>
+
+<div class="container">
+    <div class="breadcrumbs">
+        <a href="/admin/dashboard">Home</a>
+        <span>›</span>
+        <a href="/admin/fms-list">Flows</a>
+        <span>›</span>
+        <span th:text="${folderName}">Flow</span>
+    </div>
+
+    <div th:if="${!hasData or editMode}">
+        <form method="post" action="/admin/fms-process-steps">
+            <input type="hidden" name="folderId" th:value="${folderId}">
+            <input type="hidden" name="edit" th:value="${editMode}">
+            <div class="top-actions">
+                <button class="add-btn" type="button" onclick="addOrderRow()" aria-label="Add row">
+                    <svg class="icon icon-lg" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 5a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H6a1 1 0 1 1 0-2h5V6a1 1 0 0 1 1-1z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:10%">S.No</th>
+                        <th>Order Details</th>
+                    </tr>
+                </thead>
+                <tbody id="orderBody">
+                    <tr th:if="${config.orderDetails == null or #lists.isEmpty(config.orderDetails)}">
+                        <td>1</td>
+                        <td>
+                            <input type="text" name="orderDetails" placeholder="Enter order details">
+                        </td>
+                    </tr>
+                    <tr th:each="detail, iter : ${config.orderDetails}">
+                        <td th:text="${iter.index + 1}">1</td>
+                        <td>
+                            <input type="text" name="orderDetails" th:value="${detail}" placeholder="Enter order details">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="actions">
+                <button class="next-btn" type="submit">
+                    <svg class="icon icon-lg" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M13 5a1 1 0 0 1 1.7-.7l5 5a1 1 0 0 1 0 1.4l-5 5A1 1 0 0 1 13 15V9a1 1 0 0 1 1-1h-7a1 1 0 1 1 0-2h7a1 1 0 0 1-1-1Z"/>
+                    </svg>
+                    Next Page
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div th:if="${hasData and !editMode}">
+        <div class="summary-grid">
+            <div class="summary-card">
+                <h4 class="summary-title">Order Details</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:10%">SR</th>
+                            <th>Order Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="detail, iter : ${config.orderDetails}">
+                            <td th:text="${iter.index + 1}">1</td>
+                            <td th:text="${detail}">Order Number</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="margin-top:14px; display:flex; justify-content:flex-start;">
+                    <a th:href="@{/admin/fms-process(folderId=${folderId}, edit=true)}" class="edit-btn">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 16.5V20h3.5L18.8 8.7l-3.5-3.5L4 16.5Zm16.7-10.2a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.4 1.4 3.5 3.5 1.4-1.9Z"/>
+                        </svg>
+                        Edit
+                    </a>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h4 class="summary-title">Process Details</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>S.No</th>
+                            <th>Step / Process</th>
+                            <th>Responsible Person</th>
+                            <th>Target Type</th>
+                            <th>Days</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="step, iter : ${config.processDetails}">
+                            <td th:text="${iter.index + 1}">1</td>
+                            <td th:text="${step.stepProcess}">Order Confirmation</td>
+                            <td th:text="${step.responsiblePerson}">Sales</td>
+                            <td th:text="${step.targetType}">Manual</td>
+                            <td th:text="${step.days}">5</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function addOrderRow(){
+        const tbody = document.getElementById("orderBody");
+        const rowCount = tbody.rows.length + 1;
+        const row = tbody.insertRow(tbody.rows.length);
+
+        row.insertCell(0).innerText = rowCount;
+        row.insertCell(1).innerHTML = '<input type="text" name="orderDetails" placeholder="Enter order details">';
+    }
+
+    
+</script>
+
+</main>
+</div>
+</body>
+</html>
