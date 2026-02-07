@@ -29,8 +29,8 @@ public class OrderController {
     private final PlanningEntryRepository planningEntryRepository;
 
     public OrderController(O2DConfigRepository repository,
-                           OrderEntryRepository orderEntryRepository,
-                           PlanningEntryRepository planningEntryRepository) {
+            OrderEntryRepository orderEntryRepository,
+            PlanningEntryRepository planningEntryRepository) {
         this.repository = repository;
         this.orderEntryRepository = orderEntryRepository;
         this.planningEntryRepository = planningEntryRepository;
@@ -38,12 +38,12 @@ public class OrderController {
 
     @GetMapping("/dashboard")
     public String orderDashboard(@RequestParam(name = "folderId", required = false) String folderId,
-                                 @RequestParam(name = "entryId", required = false) String entryId,
-                                 @RequestParam(name = "planOrderId", required = false) String planOrderId,
-                                 @RequestParam(name = "planStart", required = false) String planStart,
-                                 @RequestParam(name = "planning", required = false) Boolean planning,
-                                 @RequestParam(name = "saved", required = false) Boolean saved,
-                                 Model model) {
+            @RequestParam(name = "entryId", required = false) String entryId,
+            @RequestParam(name = "planOrderId", required = false) String planOrderId,
+            @RequestParam(name = "planStart", required = false) String planStart,
+            @RequestParam(name = "planning", required = false) Boolean planning,
+            @RequestParam(name = "saved", required = false) Boolean saved,
+            Model model) {
         O2DConfig config = null;
         if (folderId != null && !folderId.isBlank()) {
             config = repository.findById(folderId).orElse(null);
@@ -122,7 +122,8 @@ public class OrderController {
                     planningStatus = "Pending";
                 }
                 row.put("planningStatus", planningStatus);
-                if ("Pending".equalsIgnoreCase(planningStatus) && entry.getOrderId() != null && !entry.getOrderId().isBlank()) {
+                if ("Pending".equalsIgnoreCase(planningStatus) && entry.getOrderId() != null
+                        && !entry.getOrderId().isBlank()) {
                     String orderId = entry.getOrderId().trim();
                     if (!pendingOrderIds.contains(orderId)) {
                         pendingOrderIds.add(orderId);
@@ -151,8 +152,8 @@ public class OrderController {
                 model.addAttribute("selectedEntryFields", latest.getFields());
             }
 
-            List<PlanningEntry> planningEntries =
-                    planningEntryRepository.findByFolderIdOrderByCreatedAtAsc(config.getId());
+            List<PlanningEntry> planningEntries = planningEntryRepository
+                    .findByFolderIdOrderByCreatedAtAsc(config.getId());
             List<Map<String, Object>> planningBlocks = new ArrayList<>();
             for (PlanningEntry planningEntry : planningEntries) {
                 Map<String, Object> block = new LinkedHashMap<>();
@@ -206,7 +207,7 @@ public class OrderController {
     @GetMapping("/entry")
     @ResponseBody
     public OrderEntry fetchEntry(@RequestParam("folderId") String folderId,
-                                 @RequestParam("orderId") String orderId) {
+            @RequestParam("orderId") String orderId) {
         if (folderId == null || folderId.isBlank() || orderId == null || orderId.isBlank()) {
             return null;
         }
@@ -215,8 +216,8 @@ public class OrderController {
 
     @PostMapping("/entry")
     public String createOrderEntry(@RequestParam("folderId") String folderId,
-                                   @RequestParam("orderId") String orderId,
-                                   @RequestParam Map<String, String> params) {
+            @RequestParam("orderId") String orderId,
+            @RequestParam Map<String, String> params) {
         if (folderId == null || folderId.isBlank()) {
             return "redirect:/order/dashboard";
         }
@@ -239,14 +240,18 @@ public class OrderController {
 
     @PostMapping("/planning")
     public String submitPlanning(@RequestParam("folderId") String folderId,
-                                 @RequestParam("orderId") String orderId,
-                                 @RequestParam(name = "startDate", required = false) String startDate) {
+            @RequestParam("orderId") String orderId,
+            @RequestParam(name = "startDate", required = false) String startDate) {
+
         if (folderId == null || folderId.isBlank()) {
             return "redirect:/order/dashboard";
         }
+
         String safeFolder = folderId.trim();
         String safeOrder = orderId == null ? "" : orderId.trim();
         String safeStart = startDate == null ? "" : startDate.trim();
+
+        // 1️⃣ Save Planning Entry
         if (!safeStart.isBlank()) {
             PlanningEntry planningEntry = new PlanningEntry();
             planningEntry.setFolderId(safeFolder);
@@ -255,13 +260,33 @@ public class OrderController {
             planningEntry.setCreatedAt(Instant.now());
             planningEntryRepository.save(planningEntry);
         }
+
+        // 2️⃣ UPDATE ORDER STATUS → PLANNED ⭐ IMPORTANT
+        if (!safeOrder.isBlank()) {
+            OrderEntry entry = orderEntryRepository
+                    .findFirstByFolderIdAndOrderIdOrderByCreatedAtDesc(safeFolder, safeOrder);
+
+            if (entry != null) {
+                Map<String, String> fields = entry.getFields();
+                if (fields == null) {
+                    fields = new LinkedHashMap<>();
+                }
+
+                fields.put("planning_status", "Planned"); // 🔥 main line
+                entry.setFields(fields);
+
+                orderEntryRepository.save(entry);
+            }
+        }
+
+        // 3️⃣ Redirect dashboard
         return "redirect:/order/dashboard?folderId=" + safeFolder;
     }
 
     @PostMapping("/planning-status")
     public String updatePlanningStatus(@RequestParam("entryId") String entryId,
-                                       @RequestParam("planningStatus") String planningStatus,
-                                       @RequestParam("folderId") String folderId) {
+            @RequestParam("planningStatus") String planningStatus,
+            @RequestParam("folderId") String folderId) {
         if (entryId == null || entryId.isBlank()) {
             return "redirect:/order/dashboard?folderId=" + (folderId == null ? "" : folderId.trim());
         }
