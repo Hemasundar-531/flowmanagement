@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Admin Navbar</title>
+</head>
+
+<body>
+    <!-- Reusable admin header: Admin (optional) + Logout in top-right. Use th:replace="~{fragments/admin-navbar :: navbar}" at start of body. -->
+    <th:block th:fragment="navbar">
+        <style type="text/css">
+            @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+            .admin-navbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 64px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 32px;
+                background: rgba(15, 23, 42, 0.8);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                color: #fff;
+                z-index: 1000;
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            }
+
+            .admin-navbar::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 1px;
+                background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent);
+            }
+
+            .admin-navbar-label {
+                font-size: 16px;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+                display: inline-flex;
+                align-items: center;
+                gap: 12px;
+                color: #e2e8f0;
+                text-transform: uppercase;
+            }
+
+            .admin-badge {
+                padding: 4px 12px;
+                background: rgba(59, 130, 246, 0.1);
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                border-radius: 100px;
+                font-size: 11px;
+                color: #60a5fa;
+                box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+            }
+
+            .admin-navbar-logout-form {
+                margin: 0;
+            }
+
+            .admin-navbar-logout-btn {
+                padding: 8px 20px;
+                border: 1px solid rgba(249, 115, 22, 0.5);
+                border-radius: 8px;
+                background: rgba(249, 115, 22, 0.1);
+                color: #fdba74;
+                font-weight: 600;
+                font-size: 13px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .admin-navbar-logout-btn:hover {
+                background: rgba(249, 115, 22, 0.3);
+                box-shadow: 0 0 15px rgba(249, 115, 22, 0.4);
+                color: #fff;
+                transform: translateY(-1px);
+            }
+
+            .admin-navbar-logout-btn:active {
+                transform: scale(0.98);
+            }
+
+            body.admin-navbar-active {
+                padding-top: 64px;
+            }
+        </style>
+        <header class="admin-navbar" id="admin-navbar" role="banner">
+            <span class="admin-navbar-label">
+                <span class="admin-badge">SYSTEM ADMIN</span>
+                HQEPL Command
+            </span>
+            <form th:action="@{/logout}" method="post" class="admin-navbar-logout-form" id="admin-logout-form">
+                <button type="submit" class="admin-navbar-logout-btn">
+                    Disconnect
+                </button>
+            </form>
+        </header>
+        <script th:inline="javascript">
+            (function () {
+                document.body.classList.add("admin-navbar-active");
+                var form = document.getElementById("admin-logout-form");
+                if (form) {
+                    form.addEventListener("submit", function () {
+                        try { sessionStorage.clear(); } catch (e) { }
+                        try { localStorage.removeItem("token"); localStorage.removeItem("auth"); } catch (e) { }
+                    });
+                }
+            })();
+        </script>
+    </th:block>
+</body>
+
+</html>

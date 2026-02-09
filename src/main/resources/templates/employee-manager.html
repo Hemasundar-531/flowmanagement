@@ -1,116 +1,130 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <title>Employee Manager</title>
     <style>
-        .app-shell{
-            display:flex;
-            min-height:100vh;
+        .app-shell {
+            display: flex;
+            min-height: 100vh;
         }
 
-        .sidebar{
-            width:240px;
-            background:linear-gradient(180deg, #132a63, #1f3c88);
-            color:#fff;
-            padding:20px 16px;
-            position:sticky;
-            top:0;
-            height:100vh;
+        .sidebar {
+            width: 240px;
+            background: linear-gradient(180deg, #132a63, #1f3c88);
+            color: #fff;
+            padding: 20px 16px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
         }
 
-        .sidebar .brand{
-            font-weight:800;
-            font-size:16px;
-            letter-spacing:0.4px;
-            margin-bottom:18px;
+        .sidebar .brand {
+            font-weight: 800;
+            font-size: 16px;
+            letter-spacing: 0.4px;
+            margin-bottom: 18px;
         }
 
-        .sidebar .brand span{
-            display:block;
-            font-weight:400;
-            font-size:11px;
-            color:rgba(255,255,255,0.7);
-            margin-top:4px;
+        .sidebar .brand span {
+            display: block;
+            font-weight: 400;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 4px;
         }
 
-        .nav{
-            display:flex;
-            flex-direction:column;
-            gap:8px;
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        .nav-link{
-            color:#e9efff;
-            text-decoration:none;
-            font-size:13px;
-            padding:10px 12px;
-            border-radius:10px;
-            background:rgba(255,255,255,0.08);
+        .nav-link {
+            color: #e9efff;
+            text-decoration: none;
+            font-size: 13px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
         }
 
-        .nav-link:hover{
-            background:rgba(255,255,255,0.16);
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.16);
         }
 
-        .logout-form{
-            margin-top:18px;
+        .logout-form {
+            margin-top: 18px;
         }
 
-        .logout-btn{
-            width:100%;
-            padding:10px 12px;
-            border-radius:10px;
-            border:none;
-            background:#f97316;
-            color:#fff;
-            font-weight:700;
-            cursor:pointer;
+        .logout-btn {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: none;
+            background: #f97316;
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
         }
 
-        .app-content{
-            flex:1;
-            padding:24px;
+        .app-content {
+            flex: 1;
+            padding: 24px;
         }
-        :root{
-            --ink:#0f1b2d;
-            --slate:#5a6b7c;
-            --navy:#1f3c88;
-            --navy-deep:#152d6c;
-            --teal:#0aa6a6;
-            --bg:#f2f6fb;
-            --panel:#ffffff;
-            --shadow:0 16px 34px rgba(10, 23, 47, 0.12);
+
+        :root {
+            --ink: #0f1b2d;
+            --slate: #5a6b7c;
+            --navy: #1f3c88;
+            --navy-deep: #152d6c;
+            --teal: #0aa6a6;
+            --bg: #f2f6fb;
+            --panel: #ffffff;
+            --shadow: 0 16px 34px rgba(10, 23, 47, 0.12);
+            --purple: #8b5cf6;
+            --orange: #f97316;
+            --pink: #ec4899;
+            --gradient-primary: linear-gradient(135deg, var(--purple), var(--navy));
+            --gradient-secondary: linear-gradient(135deg, var(--teal), var(--orange));
+            --gradient-accent: linear-gradient(135deg, var(--pink), var(--purple));
         }
 
         body {
-            font-family:"Poppins","Segoe UI",Tahoma,sans-serif;
+            font-family: "Poppins", "Segoe UI", Tahoma, sans-serif;
             background:
-                radial-gradient(circle at 12% 18%, rgba(10,166,166,0.12), transparent 45%),
-                radial-gradient(circle at 90% 10%, rgba(31,60,136,0.16), transparent 45%),
+                radial-gradient(circle at 12% 18%, rgba(10, 166, 166, 0.12), transparent 45%),
+                radial-gradient(circle at 90% 10%, rgba(31, 60, 136, 0.16), transparent 45%),
                 var(--bg);
-            margin:0;
-            color:var(--ink);
+            margin: 0;
+            color: var(--ink);
         }
+
         .header {
             position: relative;
             padding: 22px 0;
-            background:linear-gradient(120deg, var(--navy), #2847a7 55%, #1b66b0);
-            color:white;
-            text-align:center;
-            overflow:hidden;
+            background: linear-gradient(120deg, var(--navy), #2847a7 55%, #1b66b0);
+            color: white;
+            text-align: center;
+            overflow: hidden;
         }
 
-        .header::after{
-            content:"";
-            position:absolute;
-            right:-80px;
-            top:-90px;
-            width:220px;
-            height:220px;
-            background:rgba(255,255,255,0.08);
-            border-radius:50%;
+        .header::after {
+            content: "";
+            position: absolute;
+            right: -80px;
+            top: -90px;
+            width: 220px;
+            height: 220px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
         }
-        h2 { text-align:center; margin:0; }
+
+        h2 {
+            text-align: center;
+            margin: 0;
+        }
+
         .add-btn {
             position: absolute;
             right: 20px;
@@ -119,205 +133,1044 @@
             height: 42px;
             border-radius: 50%;
             border: none;
-            background: linear-gradient(135deg, #22c55e, #16a34a);
+            background: var(--gradient-secondary);
             color: white;
             font-size: 26px;
             cursor: pointer;
-            box-shadow:0 8px 18px rgba(34,197,94,0.3);
+            box-shadow: 0 8px 18px rgba(249, 115, 22, 0.3);
             z-index: 2;
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
         }
-        table { width:80%; margin:18px auto 0; border-collapse:collapse; background:white; box-shadow:var(--shadow); border:1px solid #dde3ec; }
-        th, td { border:1px solid #dde3ec; padding:10px; text-align:center; }
-        th { background:var(--navy); color:white; }
-        select { padding:5px; border-radius:6px; border:1px solid #cfd6dd; }
+
+        .add-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 24px rgba(249, 115, 22, 0.4);
+        }
+
+        table {
+            width: 80%;
+            margin: 18px auto 0;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: var(--shadow);
+            border: 1px solid #dde3ec;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+        }
+
+        table:hover {
+            box-shadow: 0 20px 40px rgba(10, 23, 47, 0.15);
+        }
+
+        th,
+        td {
+            border: 1px solid #dde3ec;
+            padding: 12px;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        th {
+            background: var(--gradient-primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tbody tr:hover {
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        select {
+            padding: 5px;
+            border-radius: 6px;
+            border: 1px solid #cfd6dd;
+        }
 
         /* Modal */
         .modal {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease;
         }
+
         .modal-content {
             background: white;
             width: 360px;
-            margin: 120px auto;
+            max-height: 85vh;
+            margin: 60px auto;
             padding: 20px;
             border-radius: 12px;
-            box-shadow:0 18px 40px rgba(15, 23, 42, 0.25);
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
+            animation: slideIn 0.3s ease;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
+
+        /* Custom scrollbar for modal */
+        .modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
         .modal-content input,
         .modal-content select {
             width: 100%;
             padding: 8px;
             margin: 10px 0;
-            border:1px solid #cfd6dd;
-            border-radius:6px;
+            border: 1px solid #cfd6dd;
+            border-radius: 6px;
         }
+
         .modal-content button {
-            padding: 8px 16px;
+            padding: 10px 18px;
             border: none;
             cursor: pointer;
-        }
-        .save { background:linear-gradient(135deg, #22c55e, #16a34a); color:white; }
-        .cancel { background:#ef4444; color:white; float:right; }
-
-        .icon{
-            width:16px;
-            height:16px;
-            fill:currentColor;
-            flex:0 0 auto;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
 
-        .icon-lg{
-            width:18px;
-            height:18px;
+        .save {
+            background: var(--gradient-secondary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
         }
 
-        .breadcrumbs{
-            display:flex;
-            align-items:center;
-            gap:8px;
-            font-size:12px;
-            color:var(--slate);
-            margin:16px auto 0;
-            width:80%;
+        .save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(249, 115, 22, 0.4);
         }
 
-        .breadcrumbs a{
-            color:var(--navy-deep);
-            text-decoration:none;
-            font-weight:600;
+        .cancel {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            float: right;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
 
-        .breadcrumbs span{
-            color:#9aa7b6;
+        .cancel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+        }
+
+        .icon {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+            flex: 0 0 auto;
+        }
+
+        .icon-lg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .breadcrumbs {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--slate);
+            margin: 16px auto 0;
+            width: 80%;
+        }
+
+        .breadcrumbs a {
+            color: var(--navy-deep);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .breadcrumbs span {
+            color: #9aa7b6;
+        }
+
+        /* Permission column */
+        td.permission-cell {
+            position: relative;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .perm-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border: 1px solid #cfd6dd;
+            border-radius: 8px;
+            background: var(--panel);
+            color: var(--ink);
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .perm-trigger:hover {
+            border-color: var(--purple);
+            background: rgba(139, 92, 246, 0.1);
+            transform: scale(1.02);
+        }
+
+        .perm-trigger::after {
+            content: "▾";
+            font-size: 10px;
+            opacity: 0.8;
+        }
+
+
+        .perm-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 4px;
+            min-width: 220px;
+            max-width: 280px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            padding: 10px 0;
+            animation: fadeIn 0.2s ease;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .perm-dropdown.open-upward {
+            top: auto;
+            bottom: 100%;
+            margin-top: 0;
+            margin-bottom: 4px;
+        }
+
+        .perm-dropdown.show {
+            display: block;
+        }
+
+        .perm-dropdown .perm-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            font-size: 13px;
+            color: var(--ink);
+            cursor: default;
+        }
+
+        .perm-item:hover {
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .perm-dropdown .perm-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--navy);
+        }
+
+        /* FMS = nested dropdown (dropdown inside main Permission dropdown) */
+        .perm-fms-row {
+            position: relative;
+        }
+
+        .perm-fms-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 8px 14px;
+            font-size: 13px;
+            color: var(--ink);
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            transition: background-color 0.3s ease;
+        }
+
+        .perm-fms-trigger:hover {
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .perm-fms-trigger::after {
+            content: "▾";
+            font-size: 10px;
+            opacity: 0.8;
+        }
+
+        .perm-fms-dropdown {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: 0;
+            margin-left: 2px;
+            min-width: 180px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            z-index: 101;
+            padding: 6px 0;
+        }
+
+        .perm-fms-dropdown.show {
+            display: block;
+        }
+
+        .perm-fms-dropdown .perm-item {
+            padding: 6px 12px;
+        }
+
+        .perm-fms-dropdown .perm-item:hover {
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        /* Custom scrollbar for permission dropdowns */
+        .perm-dropdown::-webkit-scrollbar,
+        .perm-fms-dropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .perm-dropdown::-webkit-scrollbar-track,
+        .perm-fms-dropdown::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+
+        .perm-dropdown::-webkit-scrollbar-thumb,
+        .perm-fms-dropdown::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .perm-dropdown::-webkit-scrollbar-thumb:hover,
+        .perm-fms-dropdown::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 768px) {
+            .app-shell {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+            }
+
+            .app-content {
+                padding: 16px;
+            }
+
+            .table-responsive {
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                width: 100%;
+                min-width: 600px;
+                /* Ensure table doesn't shrink too much */
+            }
+
+            .modal-content {
+                width: 90%;
+                margin: 60px auto;
+            }
+
+            .add-btn {
+                right: 10px;
+                top: 10px;
+                width: 36px;
+                height: 36px;
+                font-size: 20px;
+            }
+        }
+
+        /* Global Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
     </style>
 </head>
+
 <body>
+    <th:block th:replace="~{fragments/admin-navbar :: navbar}"></th:block>
 
-<div class="app-shell">
-    
-    <main class="app-content">
+    <div class="app-shell">
 
-<div class="header">
-    <h2>Employee Manager</h2>
-    <button class="add-btn" onclick="openModal()" aria-label="Add employee">
-        <svg class="icon icon-lg" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 5a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H6a1 1 0 1 1 0-2h5V6a1 1 0 0 1 1-1z"/>
-        </svg>
-    </button>
-</div>
+        <main class="app-content">
 
-<div class="breadcrumbs">
-    <a href="/admin/dashboard">Home</a>
-    <span>›</span>
-    <span>Employees</span>
-</div>
+            <div class="header">
+                <h2>Employee Manager</h2>
+                <button class="add-btn" onclick="openModal()" aria-label="Add employee">
+                    <svg class="icon icon-lg" viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                            d="M12 5a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H6a1 1 0 1 1 0-2h5V6a1 1 0 0 1 1-1z" />
+                    </svg>
+                </button>
+            </div>
 
-<table id="employeeTable">
-    <tr>
-        <th>S.No</th>
-        <th>Employee Name</th>
-        <th>Department</th>
-        <th>Status</th>
-    </tr>
-    <tr>
-        <td>1</td>
-        <td>Rahul</td>
-        <td>Production</td>
-        <td>
-            <select onchange="confirmDeleteEmployee(this)">
-                <option>Active</option>
-                <option>Hold</option>
-                <option>Deleted</option>
-            </select>
-        </td>
-    </tr>
-</table>
+            <div class="breadcrumbs">
+                <a href="/admin/dashboard">Home</a>
+                <span>›</span>
+                <span>Employees</span>
+            </div>
 
-<div class="modal" id="employeeModal">
-    <div class="modal-content">
-        <h3>Add Employee</h3>
-        <input type="text" id="empName" placeholder="Employee Name">
-        <input type="text" id="empDept" placeholder="Department">
-        <select id="empStatus">
-            <option value="">Select Status</option>
-            <option value="Active">Active</option>
-            <option value="Hold">Hold</option>
-            <option value="Deleted">Deleted</option>
-        </select>
-        <button class="save" onclick="addEmployee()">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 19a1 1 0 0 1-.7-.3l-4-4a1 1 0 1 1 1.4-1.4l3.3 3.3 8.3-8.3a1 1 0 1 1 1.4 1.4l-9 9a1 1 0 0 1-.7.3Z"/>
-            </svg>
-            Save
-        </button>
-        <button class="cancel" onclick="closeModal()">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6 6a1 1 0 0 1 1.4 0L12 10.6 16.6 6A1 1 0 1 1 18 7.4L13.4 12 18 16.6A1 1 0 0 1 16.6 18L12 13.4 7.4 18A1 1 0 0 1 6 16.6L10.6 12 6 7.4A1 1 0 0 1 6 6Z"/>
-            </svg>
-            Cancel
-        </button>
+            <div id="employeeSuccessMessage" role="alert"
+                style="display:none; margin-bottom:16px; padding:12px 16px; border-radius:10px; background:linear-gradient(135deg, #e6f6ee, #d1f2d3); color:#1e8e5a; font-size:14px; border:1px solid #c8ecd8; animation: fadeIn 0.5s ease;">
+                Employee added successfully. Login credentials created: username = employee name, default password =
+                1234567.
+            </div>
+            <div id="employeeErrorMessage" role="alert"
+                style="display:none; margin-bottom:16px; padding:12px 16px; border-radius:10px; background:linear-gradient(135deg, #fde7e7, #f8d7da); color:#c0362c; font-size:14px; border:1px solid #f0c0c0; animation: fadeIn 0.5s ease;">
+            </div>
+
+            <div class="table-responsive">
+                <table id="employeeTable">
+                    <thead>
+                        <tr>
+                            <th>S.No</th>
+                            <th>Employee Name</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                            <th>Permission</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="modal" id="employeeModal">
+                <div class="modal-content">
+                    <h3 id="modalTitle">Add Employee</h3>
+                    <input type="hidden" id="empId" />
+                    <input type="text" id="empName" placeholder="Employee Name">
+                    <input type="text" id="empDept" placeholder="Department">
+                    <select id="empStatus">
+                        <option value="">Select Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Hold">Hold</option>
+                        <option value="Deleted">Deleted</option>
+                    </select>
+
+                    <div
+                        style="margin-top:16px; padding:12px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
+                        <div style="font-size:13px; font-weight:600; color:#334155; margin-bottom:10px;">Permissions
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                            <label
+                                style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#475569;">
+                                <input type="checkbox" id="permOrderEntry" style="cursor:pointer;">
+                                Order Entry Person
+                            </label>
+                            <label
+                                style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#475569;">
+                                <input type="checkbox" id="permTaskManager" style="cursor:pointer;">
+                                Task Manager
+                            </label>
+                            <div style="margin-top:4px;">
+                                <div style="font-size:12px; font-weight:600; color:#64748b; margin-bottom:6px;">FMS
+                                    Folders</div>
+                                <div id="fmsFoldersCheckboxes"
+                                    style="display:flex; flex-direction:column; gap:6px; padding-left:8px;">
+                                    <!-- FMS folder checkboxes will be loaded dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="save" onclick="saveEmployee()">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M9 19a1 1 0 0 1-.7-.3l-4-4a1 1 0 1 1 1.4-1.4l3.3 3.3 8.3-8.3a1 1 0 1 1 1.4 1.4l-9 9a1 1 0 0 1-.7.3Z" />
+                        </svg>
+                        Save
+                    </button>
+                    <button class="cancel" onclick="closeModal()">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                                d="M6 6a1 1 0 0 1 1.4 0L12 10.6 16.6 6A1 1 0 1 1 18 7.4L13.4 12 18 16.6A1 1 0 0 1 16.6 18L12 13.4 7.4 18A1 1 0 0 1 6 16.6L10.6 12 6 7.4A1 1 0 0 1 6 6Z" />
+                        </svg>
+                        Cancel
+                    </button>
+                </div>
+            </div>
+
+            <script>
+                const API_BASE = '/admin/api/employees';
+                let allFmsFolders = [];
+
+                function openModal() {
+                    document.getElementById("modalTitle").textContent = "Add Employee";
+                    document.getElementById("empId").value = "";
+                    document.getElementById("empName").value = "";
+                    document.getElementById("empDept").value = "";
+                    document.getElementById("empStatus").value = "";
+                    document.getElementById("permOrderEntry").checked = false;
+                    document.getElementById("permTaskManager").checked = false;
+                    document.querySelectorAll('.fms-folder-checkbox').forEach(cb => cb.checked = false);
+                    document.getElementById("employeeModal").style.display = "block";
+                    hideMessage("employeeErrorMessage");
+                }
+
+                function closeModal() {
+                    document.getElementById("employeeModal").style.display = "none";
+                    document.getElementById("empName").value = "";
+                    document.getElementById("empDept").value = "";
+                    document.getElementById("empStatus").value = "";
+                }
+
+                function editEmployee(emp) {
+                    document.getElementById("modalTitle").textContent = "Edit Employee";
+                    document.getElementById("empId").value = emp.id || "";
+                    document.getElementById("empName").value = emp.name || "";
+                    document.getElementById("empDept").value = emp.department || "";
+                    document.getElementById("empStatus").value = emp.status || "";
+
+                    const perms = emp.permissions || [];
+                    document.getElementById("permOrderEntry").checked = perms.includes('ORDER_ENTRY');
+                    document.getElementById("permTaskManager").checked = perms.includes('TASK_MANAGER');
+
+                    document.querySelectorAll('.fms-folder-checkbox').forEach(cb => {
+                        const folderId = cb.getAttribute('data-folder-id');
+                        cb.checked = perms.includes('FMS:' + folderId);
+                    });
+
+                    document.getElementById("employeeModal").style.display = "block";
+                    hideMessage("employeeErrorMessage");
+                }
+
+                async function saveEmployee() {
+                    const empId = document.getElementById("empId").value;
+                    const isEdit = !!empId;
+
+                    const name = document.getElementById("empName").value.trim();
+                    const dept = document.getElementById("empDept").value.trim();
+                    const status = document.getElementById("empStatus").value;
+
+                    if (!name) { showErrorMessage("Employee name is required."); return; }
+                    if (!dept) { showErrorMessage("Department is required."); return; }
+                    if (!status) { showErrorMessage("Status is required."); return; }
+
+                    const permissions = [];
+                    if (document.getElementById("permOrderEntry").checked) permissions.push('ORDER_ENTRY');
+                    if (document.getElementById("permTaskManager").checked) permissions.push('TASK_MANAGER');
+                    document.querySelectorAll('.fms-folder-checkbox:checked').forEach(cb => {
+                        const folderId = cb.getAttribute('data-folder-id');
+                        if (folderId) permissions.push(`FMS:${folderId}`);
+                    });
+
+                    hideMessage("employeeErrorMessage");
+                    try {
+                        const url = isEdit ? `${API_BASE}/${empId}` : API_BASE;
+                        const method = isEdit ? 'PUT' : 'POST';
+                        const res = await fetch(url, {
+                            method: method,
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name, department: dept, status, permissions })
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            closeModal();
+                            showSuccessMessage();
+                            // Always reload the table to ensure all data and handlers are properly set
+                            loadEmployees();
+                            return;
+                        }
+                        showErrorMessage(data.error || `Failed to ${isEdit ? 'update' : 'add'} employee.`);
+                    } catch (e) {
+                        console.error(e);
+                        showErrorMessage(`Failed to ${isEdit ? 'update' : 'add'} employee.`);
+                    }
+                }
+
+                function showSuccessMessage() {
+                    var el = document.getElementById("employeeSuccessMessage");
+                    el.style.display = "block";
+                    hideMessage("employeeErrorMessage");
+                    setTimeout(function () { el.style.display = "none"; }, 6000);
+                }
+
+                function showErrorMessage(msg) {
+                    var el = document.getElementById("employeeErrorMessage");
+                    el.textContent = msg || "Failed to add employee. Please try again.";
+                    el.style.display = "block";
+                    document.getElementById("employeeSuccessMessage").style.display = "none";
+                }
+
+                function hideMessage(id) {
+                    var el = document.getElementById(id);
+                    if (el) { el.style.display = "none"; el.textContent = ""; }
+                }
+
+                async function loadEmployees() {
+                    console.log('[DEBUG] loadEmployees called');
+                    try {
+                        const res = await fetch(API_BASE);
+                        if (!res.ok) throw new Error('Failed to load employees');
+                        const data = await res.json();
+
+                        // Extract employees and FMS folders from response
+                        const employees = data.employees || data;
+                        allFmsFolders = data.fmsFolders || [];
+
+                        console.log('[DEBUG] Loaded', employees.length, 'employees and', allFmsFolders.length, 'FMS folders');
+
+                        // Render FMS folder checkboxes in the modal
+                        renderFmsFolderCheckboxes();
+
+                        renderTable(employees);
+                    } catch (e) {
+                        console.error(e);
+                        document.getElementById("employeeTableBody").innerHTML =
+                            '<tr><td colspan="5" style="text-align:center;color:#94a3b8;">Unable to load employees. Refresh the page.</td></tr>';
+                    }
+                }
+
+                function renderFmsFolderCheckboxes() {
+                    const container = document.getElementById('fmsFoldersCheckboxes');
+                    if (!container) return;
+
+                    if (!allFmsFolders || allFmsFolders.length === 0) {
+                        container.innerHTML = '<div style="font-size:12px; color:#94a3b8;">No FMS folders available</div>';
+                        return;
+                    }
+
+                    container.innerHTML = allFmsFolders.map(folder => `
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; color:#64748b;">
+                <input type="checkbox" class="fms-folder-checkbox" data-folder-id="${folder.id}" style="cursor:pointer;">
+                ${escapeHtml(folder.name)}
+            </label>
+        `).join('');
+                }
+
+                function renderTable(employees) {
+                    const tbody = document.getElementById("employeeTableBody");
+                    if (!employees || employees.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8;">No employees yet. Add one using the + button.</td></tr>';
+                        return;
+                    }
+                    tbody.innerHTML = employees.map((emp, idx) => {
+                        const perms = emp.permissions || [];
+                        const hasOrderEntry = perms.includes('ORDER_ENTRY');
+                        const hasTaskManager = perms.includes('TASK_MANAGER');
+                        const fmsFolderPerms = perms.filter(p => p.startsWith('FMS:'));
+
+                        // Build FMS folder checkboxes dynamically
+                        const fmsFolderHtml = allFmsFolders.map(folder => {
+                            const hasPerm = perms.includes(`FMS:${folder.id}`);
+                            return `
+                    <div class="perm-item">
+                        <input type="checkbox" id="fms-${folder.id}-${emp.id}" data-employee-id="${emp.id}" data-perm="FMS:${folder.id}" ${hasPerm ? 'checked' : ''} onchange="onPermissionChange(this)">
+                        <label for="fms-${folder.id}-${emp.id}">${escapeHtml(folder.name)}</label>
+                    </div>
+                `;
+                        }).join('');
+
+                        return `
+            <tr data-employee-id="${emp.id}">
+                <td>${idx + 1}</td>
+                <td>${escapeHtml(emp.name || '')}</td>
+                <td>${escapeHtml(emp.department || '')}</td>
+                <td>
+                    <select class="status-select" data-employee-id="${emp.id}" onchange="onStatusChange(this)">
+                        <option value="Active" ${(emp.status || '') === 'Active' ? 'selected' : ''}>Active</option>
+                        <option value="Hold" ${(emp.status || '') === 'Hold' ? 'selected' : ''}>Hold</option>
+                        <option value="Deleted" ${(emp.status || '') === 'Deleted' ? 'selected' : ''}>Deleted</option>
+                    </select>
+                </td>
+                <td class="permission-cell">
+                    <div class="perm-wrap">
+                        <button type="button" class="perm-trigger" onclick="togglePermDropdown(this)" aria-haspopup="true" aria-expanded="false">Permissions</button>
+                        <div class="perm-dropdown" onclick="event.stopPropagation()">
+                            <div class="perm-section-title">Basic Permissions</div>
+                            <div class="perm-item">
+                                <input type="checkbox" id="oep-${emp.id}" data-employee-id="${emp.id}" data-perm="ORDER_ENTRY" ${hasOrderEntry ? 'checked' : ''} onchange="onPermissionChange(this)">
+                                <label for="oep-${emp.id}">Order Entry Person</label>
+                            </div>
+                            <div class="perm-item">
+                                <input type="checkbox" id="tm-${emp.id}" data-employee-id="${emp.id}" data-perm="TASK_MANAGER" ${hasTaskManager ? 'checked' : ''} onchange="onPermissionChange(this)">
+                                <label for="tm-${emp.id}">Task Manager</label>
+                            </div>
+                            ${fmsFolderHtml ? `
+                            <div class="perm-section-title">FMS Folders</div>
+                            ${fmsFolderHtml}` : ''}
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <button onclick='editEmployee(${JSON.stringify(emp).replace(/'/g, "&#39;")})' style="padding:6px 12px; background:linear-gradient(135deg,#3b82f6,#2563eb); color:white; border:none; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'" title="Edit Employee">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; display:inline-block; vertical-align:middle; margin-right:4px;">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                        Edit
+                    </button>
+                </td>
+            </tr>`;
+                    }).join('');
+                }
+
+                function renderEmployeeRow(emp, idx) {
+                    const perms = emp.permissions || [];
+                    const hasOrderEntry = perms.includes('ORDER_ENTRY');
+                    const hasTaskManager = perms.includes('TASK_MANAGER');
+                    const fmsFolderPerms = perms.filter(p => p.startsWith('FMS:'));
+
+                    const fmsFolderHtml = allFmsFolders.map(folder => {
+                        const hasPerm = perms.includes(`FMS:${folder.id}`);
+                        return `
+                <div class="perm-item">
+                    <input type="checkbox" id="fms-${folder.id}-${emp.id}" data-employee-id="${emp.id}" data-perm="FMS:${folder.id}" ${hasPerm ? 'checked' : ''} onchange="onPermissionChange(this)">
+                    <label for="fms-${folder.id}-${emp.id}">${escapeHtml(folder.name)}</label>
+                </div>
+            `;
+                    }).join('');
+
+                    return `
+        <tr data-employee-id="${emp.id}">
+            <td>${idx + 1}</td>
+            <td>${escapeHtml(emp.name || '')}</td>
+            <td>${escapeHtml(emp.department || '')}</td>
+            <td>
+                <select class="status-select" data-employee-id="${emp.id}" onchange="onStatusChange(this)">
+                    <option value="Active" ${(emp.status || '') === 'Active' ? 'selected' : ''}>Active</option>
+                    <option value="Hold" ${(emp.status || '') === 'Hold' ? 'selected' : ''}>Hold</option>
+                    <option value="Deleted" ${(emp.status || '') === 'Deleted' ? 'selected' : ''}>Deleted</option>
+                </select>
+            </td>
+            <td class="permission-cell">
+                <div class="perm-wrap">
+                    <button type="button" class="perm-trigger" onclick="togglePermDropdown(this)" aria-haspopup="true" aria-expanded="false">Permissions</button>
+                    <div class="perm-dropdown" onclick="event.stopPropagation()">
+                        <div class="perm-section-title">Basic Permissions</div>
+                        <div class="perm-item">
+                            <input type="checkbox" id="oep-${emp.id}" data-employee-id="${emp.id}" data-perm="ORDER_ENTRY" ${hasOrderEntry ? 'checked' : ''} onchange="onPermissionChange(this)">
+                            <label for="oep-${emp.id}">Order Entry Person</label>
+                        </div>
+                        <div class="perm-item">
+                            <input type="checkbox" id="tm-${emp.id}" data-employee-id="${emp.id}" data-perm="TASK_MANAGER" ${hasTaskManager ? 'checked' : ''} onchange="onPermissionChange(this)">
+                            <label for="tm-${emp.id}">Task Manager</label>
+                        </div>
+                        ${fmsFolderHtml ? `
+                        <div class="perm-section-title">FMS Folders</div>
+                        ${fmsFolderHtml}` : ''}
+                    </div>
+                </div>
+            </td>
+            <td>
+                <button onclick='editEmployee(${JSON.stringify(emp).replace(/'/g, "&#39;")})' style="padding:6px 12px; background:linear-gradient(135deg,#3b82f6,#2563eb); color:white; border:none; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'" title="Edit Employee">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; display:inline-block; vertical-align:middle; margin-right:4px;">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    Edit
+                </button>
+            </td>
+        </tr>`;
+                }
+
+                function updateSerialNumbers() {
+                    const rows = document.querySelectorAll('#employeeTableBody tr');
+                    rows.forEach((row, index) => {
+                        const snoCell = row.cells[0];
+                        if (snoCell) {
+                            snoCell.textContent = index + 1;
+                        }
+                    });
+                }
+
+                function togglePermDropdown(triggerBtn) {
+                    event.stopPropagation();
+                    const wrap = triggerBtn.closest('.perm-wrap');
+                    const dropdown = wrap ? wrap.querySelector('.perm-dropdown') : null;
+                    document.querySelectorAll('.perm-dropdown').forEach(d => { if (d !== dropdown) d.classList.remove('show'); });
+                    document.querySelectorAll('.perm-fms-dropdown').forEach(d => d.classList.remove('show'));
+                    if (dropdown) dropdown.classList.toggle('show');
+                    triggerBtn.setAttribute('aria-expanded', dropdown && dropdown.classList.contains('show'));
+                }
+
+                function toggleFmsDropdown(triggerBtn) {
+                    event.stopPropagation();
+                    const row = triggerBtn.closest('.perm-fms-row');
+                    const subMenu = row ? row.querySelector('.perm-fms-dropdown') : null;
+                    document.querySelectorAll('.perm-fms-dropdown').forEach(d => { if (d !== subMenu) d.classList.remove('show'); });
+                    if (subMenu) subMenu.classList.toggle('show');
+                    triggerBtn.setAttribute('aria-expanded', subMenu && subMenu.classList.contains('show'));
+                }
+
+                function escapeHtml(text) {
+                    const div = document.createElement('div');
+                    div.textContent = text;
+                    return div.innerHTML;
+                }
+
+                function togglePermDropdown(triggerBtn) {
+                    console.log('[DEBUG] togglePermDropdown called', triggerBtn);
+                    event.stopPropagation();
+                    const wrap = triggerBtn.closest('.perm-wrap');
+                    const dropdown = wrap ? wrap.querySelector('.perm-dropdown') : null;
+
+                    console.log('[DEBUG] dropdown element:', dropdown);
+
+                    // Close all other dropdowns first
+                    document.querySelectorAll('.perm-dropdown').forEach(d => {
+                        if (d !== dropdown) {
+                            d.classList.remove('show');
+                            d.classList.remove('open-upward');
+                        }
+                    });
+
+                    // Toggle this dropdown
+                    if (dropdown) {
+                        const isCurrentlyShown = dropdown.classList.contains('show');
+                        dropdown.classList.toggle('show');
+
+                        // Smart positioning: check if there's enough space below
+                        if (dropdown.classList.contains('show')) {
+                            const rect = triggerBtn.getBoundingClientRect();
+                            const dropdownHeight = 300; // max-height from CSS
+                            const spaceBelow = window.innerHeight - rect.bottom;
+                            const spaceAbove = rect.top;
+
+                            console.log('[DEBUG] Space below:', spaceBelow, 'Space above:', spaceAbove);
+
+                            // If not enough space below but more space above, open upward
+                            if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+                                dropdown.classList.add('open-upward');
+                                console.log('[DEBUG] Opening upward');
+                            } else {
+                                dropdown.classList.remove('open-upward');
+                                console.log('[DEBUG] Opening downward');
+                            }
+                        }
+
+                        console.log('[DEBUG] dropdown.classList.contains("show"):', dropdown.classList.contains('show'));
+                        triggerBtn.setAttribute('aria-expanded', dropdown.classList.contains('show'));
+                    }
+                }
+
+                function getPermissionPayload(employeeId) {
+                    const row = document.querySelector(`tr[data-employee-id="${employeeId}"]`);
+                    if (!row) return null;
+
+                    const permissions = [];
+                    const checkboxes = row.querySelectorAll('input[type="checkbox"][data-perm]');
+                    checkboxes.forEach(cb => {
+                        if (cb.checked) {
+                            permissions.push(cb.getAttribute('data-perm'));
+                        }
+                    });
+
+                    return permissions;
+                }
+
+                async function onPermissionChange(checkbox) {
+                    const employeeId = checkbox.getAttribute('data-employee-id');
+                    const permissions = getPermissionPayload(employeeId);
+                    if (!employeeId || !permissions) return;
+
+                    console.log('Saving permissions for employee', employeeId, ':', permissions);
+
+                    try {
+                        const res = await fetch(`${API_BASE}/${employeeId}/permissions`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(permissions)
+                        });
+                        if (!res.ok) {
+                            const errorText = await res.text();
+                            throw new Error(`Status: ${res.status} ${res.statusText}. Details: ${errorText}`);
+                        }
+                        console.log('✅ Permissions saved successfully');
+                    } catch (e) {
+                        console.error(e);
+                        checkbox.checked = !checkbox.checked;
+                        alert('Failed to save permission:\n' + e.message);
+                    }
+                }
+
+                async function onStatusChange(selectEl) {
+                    if (selectEl.value === 'Deleted') {
+                        const ok = confirm('Are you sure you want to set this employee as Deleted?');
+                        if (!ok) {
+                            selectEl.value = 'Active';
+                            return;
+                        }
+                    }
+                    const employeeId = selectEl.getAttribute('data-employee-id');
+                    const row = document.querySelector(`tr[data-employee-id="${employeeId}"]`);
+                    const name = row?.cells[1]?.textContent?.trim() || '';
+                    const department = row?.cells[2]?.textContent?.trim() || '';
+                    try {
+                        const res = await fetch(`${API_BASE}/${employeeId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                name,
+                                department,
+                                status: selectEl.value,
+                                permissions: getPermissionPayload(employeeId) || {}
+                            })
+                        });
+                        if (!res.ok) throw new Error('Failed to update status');
+                    } catch (e) {
+                        console.error(e);
+                        alert('Failed to update status. Please try again.');
+                    }
+                }
+
+                async function addEmployee() {
+                    var name = document.getElementById("empName").value.trim();
+                    var dept = document.getElementById("empDept").value.trim();
+                    var status = document.getElementById("empStatus").value;
+
+                    if (name === "" || dept === "" || status === "") {
+                        showErrorMessage("Please enter name, department, and status.");
+                        return;
+                    }
+
+                    // Collect permissions from checkboxes
+                    const permissions = [];
+                    if (document.getElementById('permOrderEntry').checked) {
+                        permissions.push('ORDER_ENTRY');
+                    }
+                    if (document.getElementById('permTaskManager').checked) {
+                        permissions.push('TASK_MANAGER');
+                    }
+
+                    // Collect FMS folder permissions
+                    document.querySelectorAll('.fms-folder-checkbox:checked').forEach(cb => {
+                        const folderId = cb.getAttribute('data-folder-id');
+                        if (folderId) {
+                            permissions.push(`FMS:${folderId}`);
+                        }
+                    });
+
+                    console.log('Creating employee with permissions:', permissions);
+                    hideMessage("employeeErrorMessage");
+                    try {
+                        var res = await fetch(API_BASE, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                name: name,
+                                department: dept,
+                                status: status,
+                                permissions: permissions
+                            })
+                        });
+                        var data = {};
+                        try { data = await res.json(); } catch (e) { }
+                        if (res.ok) {
+                            closeModal();
+                            showSuccessMessage();
+                            // Append new employee row directly
+                            const tbody = document.getElementById("employeeTableBody");
+                            const noEmployeesRow = tbody.querySelector('tr td[colspan="5"]');
+                            if (noEmployeesRow) {
+                                tbody.innerHTML = '';
+                            }
+                            const currentRowCount = tbody.rows.length;
+                            const newRowHtml = renderEmployeeRow(data, currentRowCount);
+                            tbody.insertAdjacentHTML('beforeend', newRowHtml);
+                            updateSerialNumbers();
+                            return;
+                        }
+                        showErrorMessage(data.error || "Failed to add employee. Please try again.");
+                    } catch (e) {
+                        console.error(e);
+                        showErrorMessage("Failed to add employee. Please try again.");
+                    }
+                }
+
+                document.addEventListener('DOMContentLoaded', function () {
+                    loadEmployees();
+                    // Close dropdowns when clicking outside
+                    document.addEventListener('click', function (e) {
+                        if (!e.target.closest('.perm-trigger') && !e.target.closest('.perm-dropdown')) {
+                            document.querySelectorAll('.perm-dropdown.show').forEach(el => el.classList.remove('show'));
+                        }
+                    });
+                });
+            </script>
+
+        </main>
     </div>
-</div>
-
-<script>
-    function openModal() {
-        document.getElementById("employeeModal").style.display = "block";
-    }
-
-    function closeModal() {
-        document.getElementById("employeeModal").style.display = "none";
-        document.getElementById("empName").value = "";
-        document.getElementById("empDept").value = "";
-        document.getElementById("empStatus").value = "";
-    }
-
-    function addEmployee() {
-        const name = document.getElementById("empName").value.trim();
-        const dept = document.getElementById("empDept").value.trim();
-        const status = document.getElementById("empStatus").value;
-
-        if (name === "" || dept === "" || status === "") {
-            alert("Please enter name, department, and status.");
-            return;
-        }
-
-        const table = document.getElementById("employeeTable");
-        const rowCount = table.rows.length;
-        const row = table.insertRow(rowCount);
-        row.insertCell(0).innerHTML = rowCount;
-        row.insertCell(1).innerHTML = name;
-        row.insertCell(2).innerHTML = dept;
-        row.insertCell(3).innerHTML = `
-            <select onchange="confirmDeleteEmployee(this)">
-                <option ${status === "Active" ? "selected" : ""}>Active</option>
-                <option ${status === "Hold" ? "selected" : ""}>Hold</option>
-                <option ${status === "Deleted" ? "selected" : ""}>Deleted</option>
-            </select>
-        `;
-
-        closeModal();
-    }
-
-    function confirmDeleteEmployee(selectEl) {
-        if (selectEl.value !== "Deleted") {
-            return;
-        }
-        const ok = confirm("Are you sure?");
-        if (!ok) {
-            selectEl.value = "Active";
-        }
-    }
-</script>
-
-</main>
-</div>
 </body>
+
 </html>

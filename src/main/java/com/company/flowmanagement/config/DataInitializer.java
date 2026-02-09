@@ -1,6 +1,8 @@
 package com.company.flowmanagement.config;
 
+import com.company.flowmanagement.model.Employee;
 import com.company.flowmanagement.model.User;
+import com.company.flowmanagement.repository.EmployeeRepository;
 import com.company.flowmanagement.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -11,12 +13,32 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class DataInitializer {
 
     @Bean
-    public CommandLineRunner seedUsers(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public CommandLineRunner seedUsers(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                                       EmployeeRepository employeeRepository) {
         return args -> {
             createIfMissing(userRepository, passwordEncoder, "admin", "ADMIN");
             createIfMissing(userRepository, passwordEncoder, "order", "ORDER");
             createIfMissing(userRepository, passwordEncoder, "employee", "EMPLOYEE");
+            seedSampleEmployeeIfEmpty(employeeRepository, userRepository, passwordEncoder);
         };
+    }
+
+    private void seedSampleEmployeeIfEmpty(EmployeeRepository employeeRepository,
+                                            UserRepository userRepository,
+                                            PasswordEncoder passwordEncoder) {
+        if (employeeRepository.count() > 0) return;
+        Employee e = new Employee();
+        e.setName("Rahul");
+        e.setDepartment("Production");
+        e.setStatus("Active");
+        employeeRepository.save(e);
+        if (userRepository.findByUsername("Rahul") == null) {
+            User user = new User();
+            user.setUsername("Rahul");
+            user.setPassword(passwordEncoder.encode("1234567"));
+            user.setRole("EMPLOYEE");
+            userRepository.save(user);
+        }
     }
 
     private void createIfMissing(UserRepository userRepository, PasswordEncoder encoder,

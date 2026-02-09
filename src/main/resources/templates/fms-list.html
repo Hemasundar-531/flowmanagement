@@ -492,6 +492,34 @@
             gap:10px;
         }
 
+        .modal-create-fms{
+            width:400px;
+        }
+
+        .modal-error{
+            display:none;
+            padding:10px 12px;
+            margin-bottom:12px;
+            border-radius:8px;
+            background:#fef2f2;
+            color:#b91c1c;
+            font-size:13px;
+        }
+
+        .modal-error.show{ display:block; }
+
+        .modal-success{
+            display:none;
+            padding:10px 12px;
+            margin-bottom:12px;
+            border-radius:8px;
+            background:#f0fdf4;
+            color:#15803d;
+            font-size:13px;
+        }
+
+        .modal-success.show{ display:block; }
+
         @media (max-width: 720px){
             .modal-content{
                 width:92%;
@@ -507,6 +535,7 @@
 </head>
 
 <body>
+    <th:block th:replace="~{fragments/admin-navbar :: navbar}"></th:block>
 
 <div class="app-shell">
     
@@ -588,97 +617,124 @@
     </div>
 </div>
 
-<!-- MODAL -->
+<!-- Create New FMS modal (simple dialog) -->
 <div id="fmsModal" class="modal">
-    <div class="modal-content">
-        <h3>Create New Flow</h3>
-        <p class="modal-sub">Order Details Section (required before adding a new row)</p>
-        <form method="post" action="/admin/fms-list">
-            <div class="form-grid">
-                <div class="field">
-                    <label for="orderId">Unique Order ID</label>
-                    <input id="orderId" name="orderId" class="readonly" type="text" readonly>
-                </div>
-                <div class="field">
-                    <label for="customerName">Customer Name</label>
-                    <input id="customerName" name="customerName" type="text" placeholder="Enter customer name" required>
-                </div>
-                <div class="field">
-                    <label for="companyName">Company Name</label>
-                    <input id="companyName" name="companyName" type="text" placeholder="Enter company name" required>
-                </div>
-                <div class="field">
-                    <label for="rawMaterial">Raw Material</label>
-                    <select id="rawMaterial" name="rawMaterial" required>
-                        <option value="">Select raw material</option>
-                        <option>Steel Sheet</option>
-                        <option>Polymer Resin</option>
-                        <option>Aluminum Alloy</option>
-                        <option>Composite Fiber</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label for="quantity">Quantity</label>
-                    <input id="quantity" name="quantity" type="number" placeholder="Enter quantity" required>
-                </div>
-                <div class="field">
-                    <label for="cdd">CDD</label>
-                    <input id="cdd" name="cdd" type="date">
-                </div>
-                <div class="field">
-                    <label for="mpd">MPD</label>
-                    <input id="mpd" name="mpd" type="date">
-                </div>
-                <div class="field">
-                    <label for="startDate">Starting Date (mandatory)</label>
-                    <input id="startDate" name="startDate" type="date" required>
-                </div>
-                <div class="field">
-                    <label for="fmsName">Flow Name</label>
-                    <input id="fmsName" name="name" type="text" placeholder="Enter flow name" required>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button class="save" type="submit">
-                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M9 19a1 1 0 0 1-.7-.3l-4-4a1 1 0 1 1 1.4-1.4l3.3 3.3 8.3-8.3a1 1 0 1 1 1.4 1.4l-9 9a1 1 0 0 1-.7.3Z"/>
-                    </svg>
-                    Save
-                </button>
-                <button class="cancel" type="button" onclick="closeModal()">
-                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M6 6a1 1 0 0 1 1.4 0L12 10.6 16.6 6A1 1 0 1 1 18 7.4L13.4 12 18 16.6A1 1 0 0 1 16.6 18L12 13.4 7.4 18A1 1 0 0 1 6 16.6L10.6 12 6 7.4A1 1 0 0 1 6 6Z"/>
-                    </svg>
-                    Cancel
-                </button>
-            </div>
-        </form>
+    <div class="modal-content modal-create-fms">
+        <h3>Create New FMS</h3>
+        <p class="modal-sub">Enter a name for the new flow folder.</p>
+        <div id="createFmsError" class="modal-error" role="alert" aria-live="polite"></div>
+        <div id="createFmsSuccess" class="modal-success" role="status" aria-live="polite"></div>
+        <div class="field">
+            <label for="fmsNameInput">FMS name</label>
+            <input id="fmsNameInput" type="text" placeholder="Enter FMS name" maxlength="200" autocomplete="off">
+        </div>
+        <div class="modal-actions">
+            <button class="save" type="button" id="createFmsSubmit">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9 19a1 1 0 0 1-.7-.3l-4-4a1 1 0 1 1 1.4-1.4l3.3 3.3 8.3-8.3a1 1 0 1 1 1.4 1.4l-9 9a1 1 0 0 1-.7.3Z"/>
+                </svg>
+                Submit
+            </button>
+            <button class="cancel" type="button" onclick="closeModal()">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 6a1 1 0 0 1 1.4 0L12 10.6 16.6 6A1 1 0 1 1 18 7.4L13.4 12 18 16.6A1 1 0 0 1 16.6 18L12 13.4 7.4 18A1 1 0 0 1 6 16.6L10.6 12 6 7.4A1 1 0 0 1 6 6Z"/>
+                </svg>
+                Cancel
+            </button>
+        </div>
     </div>
 </div>
 
 <script>
+    const FMS_API = "/admin/api/fms";
+
     function openModal(){
-        document.getElementById("fmsModal").style.display="block";
-        document.getElementById("orderId").value = generateOrderId();
+        document.getElementById("fmsModal").style.display = "block";
+        document.getElementById("fmsNameInput").value = "";
+        document.getElementById("fmsNameInput").focus();
+        hideMessage("createFmsError");
+        hideMessage("createFmsSuccess");
     }
 
     function closeModal(){
-        document.getElementById("fmsModal").style.display="none";
-        document.getElementById("fmsName").value="";
-        document.getElementById("orderId").value="";
-        document.getElementById("customerName").value="";
-        document.getElementById("companyName").value="";
-        document.getElementById("rawMaterial").value="";
-        document.getElementById("quantity").value="";
-        document.getElementById("cdd").value="";
-        document.getElementById("mpd").value="";
-        document.getElementById("startDate").value="";
+        document.getElementById("fmsModal").style.display = "none";
+        document.getElementById("fmsNameInput").value = "";
+        hideMessage("createFmsError");
+        hideMessage("createFmsSuccess");
     }
 
-    function generateOrderId(){
-        const rand = Math.floor(1000 + Math.random() * 9000);
-        return "O2D-" + rand;
+    function showError(msg){
+        const el = document.getElementById("createFmsError");
+        el.textContent = msg || "Something went wrong.";
+        el.classList.add("show");
+        document.getElementById("createFmsSuccess").classList.remove("show");
     }
+
+    function showSuccess(msg){
+        const el = document.getElementById("createFmsSuccess");
+        el.textContent = msg || "FMS created successfully.";
+        el.classList.add("show");
+        document.getElementById("createFmsError").classList.remove("show");
+    }
+
+    function hideMessage(id){
+        document.getElementById(id).classList.remove("show");
+        document.getElementById(id).textContent = "";
+    }
+
+    async function submitCreateFms(){
+        const input = document.getElementById("fmsNameInput");
+        const name = (input.value || "").trim();
+        hideMessage("createFmsError");
+        hideMessage("createFmsSuccess");
+
+        if (!name){
+            showError("FMS name is required.");
+            input.focus();
+            return;
+        }
+
+        const submitBtn = document.getElementById("createFmsSubmit");
+        submitBtn.disabled = true;
+
+        try {
+            const res = await fetch(FMS_API, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: name })
+            });
+
+            const data = await res.json().catch(function(){ return {}; });
+
+            if (res.ok){
+                showSuccess("FMS created successfully.");
+                setTimeout(function(){
+                    closeModal();
+                    window.location.reload();
+                }, 800);
+                return;
+            }
+
+            if (res.status === 409 || (data && data.error)){
+                showError(data.error || "A folder with this name already exists.");
+                input.focus();
+                return;
+            }
+
+            showError(data.error || "Failed to create FMS. Please try again.");
+            input.focus();
+        } catch (e){
+            showError("Network error. Please try again.");
+            input.focus();
+        } finally {
+            submitBtn.disabled = false;
+        }
+    }
+
+    document.getElementById("createFmsSubmit").addEventListener("click", submitCreateFms);
+    document.getElementById("fmsNameInput").addEventListener("keydown", function(e){
+        if (e.key === "Enter"){ e.preventDefault(); submitCreateFms(); }
+    });
 
     function toggleMenu(button){
         const panel = button.parentElement.querySelector(".menu-panel");

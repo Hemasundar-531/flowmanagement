@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Employee Sidebar</title>
+</head>
+
+<body>
+    <!-- 
+        Reusable employee sidebar with permission-based menu.
+        Usage: th:replace="~{fragments/employee-sidebar :: sidebar}"
+        Requires model attributes: employeeName, permissions (List<String>)
+    -->
+    <th:block th:fragment="sidebar">
+        <style type="text/css">
+            .emp-sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 260px;
+                height: 100vh;
+                background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+                color: #fff;
+                display: flex;
+                flex-direction: column;
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 1000;
+                box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+                overflow-x: hidden;
+                /* Fix animation scrollbars */
+            }
+
+            .emp-sidebar.collapsed {
+                width: 72px;
+            }
+
+            .emp-sidebar.collapsed .sidebar-brand-text,
+            .emp-sidebar.collapsed .nav-text,
+            .emp-sidebar.collapsed .sidebar-footer-text,
+            .emp-sidebar.collapsed .submenu,
+            .emp-sidebar.collapsed .submenu-arrow,
+            .emp-sidebar.collapsed .nav-section-title,
+            .emp-sidebar.collapsed .no-permissions {
+                display: none;
+            }
+
+            .emp-sidebar.collapsed .nav-item {
+                justify-content: center;
+                padding: 12px;
+            }
+
+            .emp-sidebar.collapsed .nav-item .nav-icon {
+                margin-right: 0;
+            }
+
+            .sidebar-header {
+                padding: 20px 16px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .sidebar-brand {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .sidebar-logo {
+                width: 40px;
+                height: 40px;
+                border-radius: 10px;
+                background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 14px;
+                flex-shrink: 0;
+            }
+
+            .sidebar-brand-text h2 {
+                margin: 0;
+                font-size: 15px;
+                font-weight: 600;
+            }
+
+            .sidebar-brand-text span {
+                font-size: 11px;
+                color: rgba(255, 255, 255, 0.6);
+            }
+
+            .sidebar-toggle {
+                width: 32px;
+                height: 32px;
+                border: none;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                color: #fff;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background 0.2s;
+            }
+
+            .sidebar-toggle:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
+
+            .sidebar-toggle svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .sidebar-nav {
+                flex: 1;
+                overflow-y: auto;
+                padding: 16px 12px;
+            }
+
+            .nav-section {
+                margin-bottom: 24px;
+            }
+
+            .nav-section-title {
+                font-size: 10px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                color: rgba(255, 255, 255, 0.4);
+                padding: 0 12px;
+                margin-bottom: 8px;
+            }
+
+            .nav-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .nav-item {
+                display: flex;
+                align-items: center;
+                padding: 12px 14px;
+                border-radius: 10px;
+                color: rgba(255, 255, 255, 0.8);
+                text-decoration: none;
+                font-size: 13px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s;
+                margin-bottom: 4px;
+                width: 100%;
+                border: none;
+                background: transparent;
+            }
+
+            .nav-item:hover {
+                background: rgba(255, 255, 255, 0.08);
+                color: #fff;
+            }
+
+            .nav-item.active {
+                background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+                color: #fff;
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            }
+
+            .nav-icon {
+                width: 20px;
+                height: 20px;
+                margin-right: 12px;
+                flex-shrink: 0;
+            }
+
+            .nav-text {
+                flex: 1;
+                text-align: left;
+                white-space: nowrap;
+                opacity: 1;
+                transition: opacity 0.2s;
+            }
+
+            .has-submenu .submenu-arrow {
+                width: 16px;
+                height: 16px;
+                transition: transform 0.2s;
+            }
+
+            .has-submenu.expanded .submenu-arrow {
+                transform: rotate(90deg);
+            }
+
+            .submenu {
+                list-style: none;
+                padding: 4px 0 4px 32px;
+                margin: 0;
+                display: none;
+            }
+
+            .submenu.show {
+                display: block;
+            }
+
+            /* Flyout submenu when sidebar is collapsed */
+            .emp-sidebar.collapsed .submenu {
+                position: fixed;
+                left: 72px;
+                background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+                border-radius: 10px;
+                padding: 8px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+                min-width: 180px;
+                z-index: 1001;
+            }
+
+            .emp-sidebar.collapsed .submenu.show {
+                display: block;
+            }
+
+            .submenu .nav-item {
+                font-size: 12px;
+                padding: 10px 14px;
+            }
+
+            .sidebar-footer {
+                padding: 16px;
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
+            }
+
+            .user-profile {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px;
+                border-radius: 10px;
+                background: rgba(255, 255, 255, 0.05);
+                margin-bottom: 12px;
+            }
+
+            .user-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #10b981, #059669);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                font-size: 14px;
+                flex-shrink: 0;
+            }
+
+            .user-info h4 {
+                margin: 0;
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+            .user-info span {
+                font-size: 11px;
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+            .logout-btn {
+                width: 100%;
+                padding: 12px;
+                border: none;
+                border-radius: 10px;
+                background: linear-gradient(135deg, #f97316, #ea580c);
+                color: #fff;
+                font-weight: 600;
+                font-size: 13px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                transition: all 0.2s;
+            }
+
+            .logout-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+            }
+
+            .logout-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            .emp-main-content {
+                margin-left: 260px;
+                min-height: 100vh;
+                transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .emp-main-content.sidebar-collapsed {
+                margin-left: 72px;
+            }
+
+            @media (max-width: 1024px) {
+                .emp-sidebar {
+                    transform: translateX(-100%);
+                }
+
+                .emp-sidebar.mobile-open {
+                    transform: translateX(0);
+                }
+
+                .emp-main-content {
+                    margin-left: 0;
+                }
+
+                .mobile-menu-btn {
+                    display: flex !important;
+                }
+
+                .sidebar-overlay {
+                    display: block;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.5);
+                    z-index: 999;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.3s;
+                }
+
+                .sidebar-overlay.active {
+                    opacity: 1;
+                    visibility: visible;
+                }
+            }
+
+            .no-permissions {
+                padding: 16px;
+                text-align: center;
+                color: rgba(255, 255, 255, 0.5);
+                font-size: 12px;
+            }
+        </style>
+
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileSidebar()"></div>
+
+        <aside class="emp-sidebar" id="empSidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-brand">
+                    <div class="sidebar-logo">FMS</div>
+                    <div class="sidebar-brand-text">
+                        <h2>Flow Management</h2>
+                        <span>Employee Portal</span>
+                    </div>
+                </div>
+                <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 18l-6-6 6-6" />
+                    </svg>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main Menu</div>
+                    <ul class="nav-list">
+                        <li>
+                            <a th:href="@{/employee/dashboard}" class="nav-item" data-page="dashboard">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="9" rx="1" />
+                                    <rect x="14" y="3" width="7" height="5" rx="1" />
+                                    <rect x="14" y="12" width="7" height="9" rx="1" />
+                                    <rect x="3" y="16" width="7" height="5" rx="1" />
+                                </svg>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section"
+                    th:if="${permissions != null and (permissions.contains('ORDER_ENTRY') or permissions.contains('TASK_MANAGER'))}">
+                    <div class="nav-section-title">Assignment Modules</div>
+                    <ul class="nav-list">
+                        <li th:if="${permissions.contains('ORDER_ENTRY')}">
+                            <a th:href="@{/employee/order-entry}" class="nav-item" data-page="order-entry">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                                    <rect x="9" y="3" width="6" height="4" rx="1" />
+                                    <path d="M9 12h6" />
+                                    <path d="M9 16h6" />
+                                </svg>
+                                <span class="nav-text">Order Entry</span>
+                            </a>
+                        </li>
+                        <li th:if="${permissions.contains('TASK_MANAGER')}">
+                            <a th:href="@{/employee/task-manager}" class="nav-item" data-page="task-manager">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M9 11l3 3L22 4" />
+                                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                                </svg>
+                                <span class="nav-text">Task Manager</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <th:block th:with="hasFms=${fmsFolders != null and !fmsFolders.isEmpty()}">
+                    <div class="nav-section" th:if="${hasFms}">
+                        <div class="nav-section-title">FMS Modules</div>
+                        <ul class="nav-list">
+                            <li>
+                                <button class="nav-item has-submenu" onclick="toggleSubmenu(this)">
+                                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path
+                                            d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                                    </svg>
+                                    <span class="nav-text">FMS</span>
+                                    <svg class="submenu-arrow" viewBox="0 0 24 24" fill="currentColor">
+                                        <path
+                                            d="M8.6 7.4a1 1 0 0 1 1.4 0l4 4a1 1 0 0 1 0 1.4l-4 4a1 1 0 0 1-1.4-1.4L12.2 12 8.6 8.6a1 1 0 0 1 0-1.4Z" />
+                                    </svg>
+                                </button>
+                                <ul class="submenu" id="fmsSubmenu">
+                                    <li th:each="folder : ${fmsFolders}">
+                                        <a th:href="@{/employee/fms/{folderId}(folderId=${folder.id})}" class="nav-item"
+                                            th:data-page="|fms/${folder.id}|">
+                                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                stroke-width="2">
+                                                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                                                <path d="M13 2v7h7" />
+                                            </svg>
+                                            <span class="nav-text" th:text="${folder.name}">Folder Name</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </th:block>
+
+                <th:block
+                    th:with="hasAny=${permissions != null and (permissions.contains('ORDER_ENTRY') or permissions.contains('TASK_MANAGER') or permissions.contains('FMS:folder1') or permissions.contains('FMS:folder2'))}">
+                    <div class="no-permissions" th:unless="${hasAny}">
+                        <p>No module permissions assigned yet.</p>
+                        <p>Contact your administrator.</p>
+                    </div>
+                </th:block>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar"
+                        th:text="${employeeName != null and employeeName.length() > 0 ? #strings.toUpperCase(#strings.substring(employeeName, 0, 1)) : 'E'}">
+                        E</div>
+                    <div class="user-info sidebar-footer-text">
+                        <h4 th:text="${employeeName}">Employee Name</h4>
+                        <span>Employee</span>
+                    </div>
+                </div>
+                <form th:action="@{/logout}" method="post" style="margin: 0;">
+                    <button type="submit" class="logout-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
+                        <span class="sidebar-footer-text">Logout</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <script>
+            function toggleSidebar() {
+                const sidebar = document.getElementById('empSidebar');
+                const mainContent = document.querySelector('.emp-main-content');
+                const toggleBtn = document.querySelector('.sidebar-toggle svg');
+                sidebar.classList.toggle('collapsed');
+                if (mainContent) mainContent.classList.toggle('sidebar-collapsed');
+                toggleBtn.style.transform = sidebar.classList.contains('collapsed') ? 'rotate(180deg)' : 'rotate(0deg)';
+                localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+            }
+
+            function toggleMobileSidebar() {
+                document.getElementById('empSidebar').classList.toggle('mobile-open');
+                document.getElementById('sidebarOverlay').classList.toggle('active');
+            }
+
+            function toggleSubmenu(element) {
+                element.classList.toggle('expanded');
+                const submenu = element.parentElement.querySelector('.submenu');
+                if (submenu) {
+                    submenu.classList.toggle('show');
+
+                    // Position flyout when sidebar is collapsed
+                    const sidebar = document.getElementById('empSidebar');
+                    if (sidebar && sidebar.classList.contains('collapsed')) {
+                        const rect = element.getBoundingClientRect();
+                        submenu.style.top = rect.top + 'px';
+                    } else {
+                        submenu.style.top = '';
+                    }
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                if (isCollapsed) {
+                    document.getElementById('empSidebar').classList.add('collapsed');
+                    const mainContent = document.querySelector('.emp-main-content');
+                    if (mainContent) mainContent.classList.add('sidebar-collapsed');
+                    const toggleBtn = document.querySelector('.sidebar-toggle svg');
+                    if (toggleBtn) toggleBtn.style.transform = 'rotate(180deg)';
+                }
+
+                const currentPath = window.location.pathname;
+                document.querySelectorAll('.nav-item[data-page]').forEach(function (item) {
+                    if (currentPath.includes(item.getAttribute('data-page'))) {
+                        item.classList.add('active');
+                    }
+                });
+
+                if (currentPath.includes('/fms')) {
+                    const fmsBtn = document.querySelector('.has-submenu');
+                    if (fmsBtn) {
+                        fmsBtn.classList.add('expanded');
+                        const submenu = fmsBtn.parentElement.querySelector('.submenu');
+                        if (submenu) submenu.classList.add('show');
+                    }
+                }
+            });
+        </script>
+    </th:block>
+</body>
+
+</html>

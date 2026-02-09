@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Admin – Process Setup</title>
     <style>
@@ -140,13 +140,14 @@
 </head>
 
 <body>
+    <th:block th:replace="~{fragments/admin-navbar :: navbar}"></th:block>
 
 <div class="app-shell">
     
     <main class="app-content">
 
 <div class="header">
-    HQEPL – Flow Management System | <b>ADMIN</b>
+    HQEPL – Flow Management System
 </div>
 
 <div class="container">
