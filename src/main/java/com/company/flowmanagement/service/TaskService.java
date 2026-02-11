@@ -43,39 +43,74 @@ public class TaskService {
         return String.format("TASK-%03d", count + 1);
     }
 
-    // Get dashboard stats for a user
-    public Map<String, Object> getDashboardStats(String username) {
+    // Helper to get all tasks (DB + FMS)
+    private List<Task> getAllTasksForUser(String username) {
         User user = userRepository.findByUsername(username);
         if (user == null)
-            return new HashMap<>();
+            return new ArrayList<>();
 
-        List<Task> allTasks = taskRepository.findByAssignedToIdOrderByCreatedAtDesc(user.getId());
+        // 1. DB Tasks
+        List<Task> allTasks = new ArrayList<>(taskRepository.findByAssignedToIdOrderByCreatedAtDesc(user.getId()));
+
+        // 2. FMS Process Steps
+        List<O2DConfig> configs = o2dConfigRepository.findAll();
+        for (O2DConfig config : configs) {
+            if (config.getProcessDetails() != null) {
+                for (int i = 0; i < config.getProcessDetails().size(); i++) {
+                    ProcessStep step = config.getProcessDetails().get(i);
+                    String person = step.getResponsiblePerson();
+                    if (person != null && person.trim().equalsIgnoreCase(username.trim())) {
+                        Task stepTask = new Task();
+                        stepTask.setTaskId("STEP_" + config.getId() + "_" + i);
+                        stepTask.setTitle("FMS: " + step.getStepProcess());
+                        stepTask.setProjectName(config.getName());
+                        stepTask.setClientName(config.getCustomerName());
+                        stepTask.setAssignedToName(username);
+                        stepTask.setAssignedByName("Admin");
+                        stepTask.setTargetDate(step.getDays() != null ? "+" + step.getDays() + " Days" : "N/A");
+                        stepTask.setStatus(step.getStatus() != null ? step.getStatus() : "PENDING");
+                        stepTask.setRemarks(step.getRemarks());
+                        stepTask.setCompletionDate(step.getCompletionDate());
+
+                        allTasks.add(stepTask);
+                    }
+                }
+            }
+        }
+        return allTasks;
+    }
+
+    // Get dashboard stats for a user
+    public Map<String, Object> getDashboardStats(String username) {
+        List<Task> allTasks = getAllTasksForUser(username);
+
         long totalTasks = allTasks.size();
-        long onTimeCount = allTasks.stream().filter(t -> "On Time".equals(t.getStatus())).count();
+        long onTimeCount = allTasks.stream()
+                .filter(t -> "On Time".equals(t.getStatus()) || "Completed".equals(t.getStatus())).count(); // broad def
+                                                                                                            // for now
 
         // Calculate OTC score (On Time Completion)
         double otcScore = totalTasks > 0 ? (double) onTimeCount / totalTasks * 100 : 0;
         String otcScoreStr = String.format("%.0f%%", otcScore);
 
-        // Calculate ATS score (assuming some logic, for now placeholder)
-        String atsScore = "85%"; // Placeholder
-
         // Chart data
         Map<String, Long> statusCounts = allTasks.stream()
-                .collect(Collectors.groupingBy(Task::getStatus, Collectors.counting()));
+                .collect(Collectors.groupingBy(task -> task.getStatus() != null ? task.getStatus() : "PENDING",
+                        Collectors.counting()));
 
         List<Map<String, Object>> chartData = Arrays.asList(
                 Map.of("name", "On Time", "value", statusCounts.getOrDefault("On Time", 0L), "color", "#22c55e"),
                 Map.of("name", "In Progress", "value", statusCounts.getOrDefault("In Progress", 0L), "color",
                         "#3b82f6"),
                 Map.of("name", "Delayed", "value", statusCounts.getOrDefault("Delayed", 0L), "color", "#facc15"),
-                Map.of("name", "Overdue", "value", statusCounts.getOrDefault("Overdue", 0L), "color", "#ef4444"));
+                Map.of("name", "Overdue", "value", statusCounts.getOrDefault("Overdue", 0L), "color", "#ef4444"),
+                Map.of("name", "Pending", "value", statusCounts.getOrDefault("PENDING", 0L), "color", "#94a3b8"));
 
         return Map.of(
                 "total_tasks", totalTasks,
                 "on_time_count", onTimeCount,
                 "otc_score", otcScoreStr,
-                "ats_score", atsScore,
+                "ats_score", "85%", // Placeholder
                 "chart_data", chartData);
     }
 
@@ -94,59 +129,19 @@ public class TaskService {
 
     // Get tasks for user
     public Map<String, List<Task>> getUserTasks(String username) {
+        List<Task> allTasks = getAllTasksForUser(username);
+
+        List<Task> myActive = allTasks.stream()
+                .filter(t -> !"Completed".equalsIgnoreCase(t.getStatus()))
+                .collect(Collectors.toList());
+
+        List<Task> myCompleted = allTasks.stream()
+                .filter(t -> "Completed".equalsIgnoreCase(t.getStatus()))
+                .collect(Collectors.toList());
+
         User user = userRepository.findByUsername(username);
-        if (user == null)
-            return new HashMap<>();
-
-        List<Task> myActive = taskRepository.findActiveTasksByAssignedToId(user.getId());
-        List<Task> myCompleted = taskRepository.findCompletedTasksByAssignedToId(user.getId());
-        List<Task> delegated = taskRepository.findDelegatedTasksByAssignedById(user.getId());
-
-        // Aggregate FMS Process Steps
-        List<O2DConfig> configs = o2dConfigRepository.findAll();
-        System.out.println("DEBUG: Found " + configs.size() + " O2DConfig documents.");
-
-        for (O2DConfig config : configs) {
-            if (config.getProcessDetails() != null) {
-                System.out.println(
-                        "DEBUG: Config " + config.getId() + " has " + config.getProcessDetails().size() + " steps.");
-                for (int i = 0; i < config.getProcessDetails().size(); i++) {
-                    ProcessStep step = config.getProcessDetails().get(i);
-                    // Match by username/responsible person (case-insensitive)
-                    String person = step.getResponsiblePerson();
-                    if (person != null) {
-                        // System.out.println("DEBUG: Checking Step " + i + " assigned to: '" + person +
-                        // "' against user: '" + username + "'");
-                        if (person.trim().equalsIgnoreCase(username.trim())) {
-                            // System.out.println("DEBUG: MATCH FOUND!");
-                            Task stepTask = new Task();
-                            stepTask.setTaskId("STEP_" + config.getId() + "_" + i);
-                            stepTask.setTitle("FMS: " + step.getStepProcess());
-                            stepTask.setProjectName(config.getName());
-                            stepTask.setClientName(config.getCustomerName());
-                            stepTask.setAssignedToName(username);
-                            stepTask.setAssignedByName("Admin");
-                            stepTask.setTargetDate(step.getDays() != null ? "+" + step.getDays() + " Days" : "N/A");
-                            stepTask.setStatus(step.getStatus() != null ? step.getStatus() : "PENDING");
-                            stepTask.setRemarks(step.getRemarks());
-                            stepTask.setCompletionDate(step.getCompletionDate());
-
-                            // Add to appropriate list
-                            if ("Completed".equalsIgnoreCase(step.getStatus())) {
-                                myCompleted.add(stepTask);
-                            } else {
-                                myActive.add(stepTask);
-                            }
-                        }
-                    } else {
-                        System.out.println(
-                                "DEBUG: Step " + i + " in Config " + config.getId() + " has NULL responsible person.");
-                    }
-                }
-            } else {
-                System.out.println("DEBUG: Config " + config.getId() + " has NULL process details.");
-            }
-        }
+        List<Task> delegated = user != null ? taskRepository.findDelegatedTasksByAssignedById(user.getId())
+                : new ArrayList<>();
 
         return Map.of(
                 "myTasks", myActive,
