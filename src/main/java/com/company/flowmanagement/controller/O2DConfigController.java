@@ -45,8 +45,7 @@ public class O2DConfigController {
             @RequestParam(value = "quantity", required = false) Integer quantity,
             @RequestParam(value = "cdd", required = false) String cdd,
             @RequestParam(value = "mpd", required = false) String mpd,
-            @RequestParam(value = "startDate", required = false) String startDate
-    ) {
+            @RequestParam(value = "startDate", required = false) String startDate) {
         String trimmed = name == null ? "" : name.trim();
         if (trimmed.isEmpty()) {
             return "redirect:/admin/fms-list";
@@ -70,8 +69,8 @@ public class O2DConfigController {
 
     @GetMapping("/fms-process")
     public String viewO2D(@RequestParam("folderId") String folderId,
-                          @RequestParam(name = "edit", required = false, defaultValue = "false") boolean edit,
-                          Model model) {
+            @RequestParam(name = "edit", required = false, defaultValue = "false") boolean edit,
+            Model model) {
         O2DConfig config = repository.findById(folderId).orElse(null);
         if (config == null) {
             return "redirect:/admin/fms-list";
@@ -94,9 +93,8 @@ public class O2DConfigController {
             @RequestParam("folderId") String folderId,
             @RequestParam(name = "orderDetails", required = false) List<String> orderDetails,
             Model model,
-            HttpSession session
-    ) {
-        List<String> cleanedOrderDetails = cleanOrderDetails(orderDetails);
+            HttpSession session) {
+        ArrayList<String> cleanedOrderDetails = cleanOrderDetails(orderDetails);
         session.setAttribute("orderDetailsDraft", cleanedOrderDetails);
         session.setAttribute("folderIdDraft", folderId);
 
@@ -105,9 +103,9 @@ public class O2DConfigController {
 
     @GetMapping("/fms-process-steps")
     public String viewProcessSteps(@RequestParam("folderId") String folderId,
-                                   @RequestParam(name = "edit", required = false, defaultValue = "false") boolean edit,
-                                   HttpSession session,
-                                   Model model) {
+            @RequestParam(name = "edit", required = false, defaultValue = "false") boolean edit,
+            HttpSession session,
+            Model model) {
         O2DConfig config = repository.findById(folderId).orElse(null);
         if (config == null) {
             return "redirect:/admin/fms-list";
@@ -142,18 +140,17 @@ public class O2DConfigController {
             @RequestParam(name = "responsiblePerson", required = false) List<String> responsiblePerson,
             @RequestParam(name = "targetType", required = false) List<String> targetType,
             @RequestParam(name = "days", required = false) List<String> days,
-            HttpSession session
-    ) {
-        List<String> cleanedOrderDetails = new ArrayList<>();
+            HttpSession session) {
+        ArrayList<String> cleanedOrderDetails = new ArrayList<>();
         Object draftId = session.getAttribute("folderIdDraft");
         if (folderId.equals(draftId)) {
             Object draft = session.getAttribute("orderDetailsDraft");
             if (draft instanceof List) {
-                cleanedOrderDetails = (List<String>) draft;
+                cleanedOrderDetails = new ArrayList<>((List<String>) draft);
             }
         }
 
-        List<ProcessStep> cleanedSteps = new ArrayList<>();
+        ArrayList<ProcessStep> cleanedSteps = new ArrayList<>();
         if (stepProcess != null) {
             int size = stepProcess.size();
 
@@ -199,8 +196,8 @@ public class O2DConfigController {
         return "redirect:/admin/fms-list";
     }
 
-    private List<String> cleanOrderDetails(List<String> orderDetails) {
-        List<String> cleaned = new ArrayList<>();
+    private ArrayList<String> cleanOrderDetails(List<String> orderDetails) {
+        ArrayList<String> cleaned = new ArrayList<>();
         if (orderDetails == null) {
             return cleaned;
         }

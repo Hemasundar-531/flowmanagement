@@ -38,4 +38,41 @@ public class ProcessStep {
     public void setDays(Integer days) {
         this.days = days;
     }
+
+    private String status = "PENDING";
+    private String remarks;
+    private String completionDate;
+    private String completionFile;
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
+    }
+
+    public String getCompletionDate() {
+        return completionDate;
+    }
+
+    public void setCompletionDate(String completionDate) {
+        this.completionDate = completionDate;
+    }
+
+    public String getCompletionFile() {
+        return completionFile;
+    }
+
+    public void setCompletionFile(String completionFile) {
+        this.completionFile = completionFile;
+    }
 }

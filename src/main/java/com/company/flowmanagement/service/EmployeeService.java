@@ -23,13 +23,16 @@ public class EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.company.flowmanagement.repository.O2DConfigRepository o2dConfigRepository;
 
     public EmployeeService(EmployeeRepository employeeRepository,
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            com.company.flowmanagement.repository.O2DConfigRepository o2dConfigRepository) {
         this.employeeRepository = employeeRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.o2dConfigRepository = o2dConfigRepository;
     }
 
     /**
@@ -64,5 +67,42 @@ public class EmployeeService {
         userRepository.save(user);
 
         return saved;
+    }
+
+    public java.util.Map<String, Object> getEmployeeContext(String username) {
+        java.util.Map<String, Object> context = new java.util.HashMap<>();
+
+        com.company.flowmanagement.model.Employee employee = employeeRepository.findByName(username)
+                .orElseGet(() -> {
+                    com.company.flowmanagement.model.Employee e = new com.company.flowmanagement.model.Employee();
+                    e.setName(username);
+                    e.setPermissions(new ArrayList<>());
+                    return e;
+                });
+
+        java.util.List<String> permissions = employee.getPermissions();
+        if (permissions == null) {
+            permissions = new ArrayList<>();
+        }
+        final java.util.List<String> finalPermissions = new ArrayList<>(permissions);
+
+        // Fetch all FMS folders from database
+        java.util.List<com.company.flowmanagement.model.O2DConfig> allFmsFolders = o2dConfigRepository.findAll();
+
+        // Filter folders based on employee permissions
+        java.util.List<com.company.flowmanagement.model.O2DConfig> employeeFmsFolders = allFmsFolders.stream()
+                .filter(folder -> finalPermissions.contains("FMS:" + folder.getId()))
+                .collect(java.util.stream.Collectors.toList());
+
+        context.put("employeeName", employee.getName());
+        context.put("permissions", finalPermissions);
+        context.put("employee", employee);
+        context.put("fmsFolders", employeeFmsFolders);
+
+        return context;
+    }
+
+    public java.util.List<Employee> getAllEmployees() {
+        return employeeRepository.findAll();
     }
 }

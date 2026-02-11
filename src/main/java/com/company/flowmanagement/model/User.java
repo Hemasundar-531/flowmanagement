@@ -16,7 +16,7 @@ public class User {
     private String password;
     private String role; // ADMIN, ORDER, EMPLOYEE
 
-    private List<String> permissions = new ArrayList<>();
+    private ArrayList<String> permissions = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -50,11 +50,11 @@ public class User {
         this.role = role;
     }
 
-    public List<String> getPermissions() {
+    public ArrayList<String> getPermissions() {
         return permissions;
     }
 
-    public void setPermissions(List<String> permissions) {
+    public void setPermissions(ArrayList<String> permissions) {
         this.permissions = permissions != null ? permissions : new ArrayList<>();
     }
 }

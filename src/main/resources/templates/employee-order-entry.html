@@ -79,10 +79,20 @@
             color: var(--muted);
         }
 
-        .content {
+        .emp-main-content {
             padding: 24px;
             max-width: 1200px;
             margin: 0 auto;
+            margin-left: 260px;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .emp-main-content.sidebar-collapsed {
+            margin-left: 0;
+        }
+
+        .content {
+            /* padding: 24px; REMOVED as it's now in main */
         }
 
         .panel {

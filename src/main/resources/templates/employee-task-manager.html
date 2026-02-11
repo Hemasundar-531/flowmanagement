@@ -83,12 +83,20 @@
         }
 
         /* MAIN CONTENT AREA */
-        .app-content {
+        /* MAIN CONTENT AREA */
+        .emp-main-content {
             flex: 1;
             padding: 12px 16px;
             overflow-y: auto;
             background: #f1f5f9;
             max-height: 100vh;
+            margin-left: 260px;
+            /* Default sidebar width */
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .emp-main-content.sidebar-collapsed {
+            margin-left: 0;
         }
 
         /* HEADER */
@@ -755,10 +763,21 @@
         <th:block th:replace="~{fragments/employee-sidebar :: sidebar}"></th:block>
 
         <!-- MAIN CONTENT -->
-        <main class="app-content">
+        <!-- MAIN CONTENT -->
+        <main class="emp-main-content">
             <!-- HEADER -->
             <div class="page-header">
-                <div></div>
+                <div>
+                    <button class="mobile-menu-btn" onclick="toggleMobileSidebar()"
+                        style="display: none; background: transparent; border: none; color: white;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24"
+                            height="24">
+                            <line x1="3" y1="12" x2="21" y2="12" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <line x1="3" y1="18" x2="21" y2="18" />
+                        </svg>
+                    </button>
+                </div>
                 <h1 id="userName">Employee's Dashboard</h1>
                 <div class="header-date">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -868,7 +887,13 @@
             <div class="table-container">
                 <div class="table-header">
                     <h3>My Function Tasks</h3>
-                    <span class="badge" id="myTasksCount">12 Records</span>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="badge" id="myTasksCount">12 Records</span>
+                        <button class="action-btn primary" onclick="openAssignModal(true)"
+                            style="padding: 6px 12px; font-size: 10px; height: 28px; min-width: auto;">
+                            + Add Task
+                        </button>
+                    </div>
                 </div>
                 <div style="overflow-x: auto;">
                     <table>
@@ -1106,9 +1131,8 @@
                         <label class="form-label">Assigned To</label>
                         <select class="form-control" id="assignUser" required>
                             <option value="">Select Team Member</option>
-                            <option value="user-1">John Doe</option>
-                            <option value="user-2">Jane Smith</option>
-                            <option value="user-3">Mike Wilson</option>
+                            <option th:each="emp : ${allEmployees}" th:value="${emp.name}" th:text="${emp.name}">
+                                Employee Name</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1163,15 +1187,30 @@
         </div>
     </div>
 
-    <script>
-        // PLACEHOLDER DATA
-        const userName = "John Doe";
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const dashboardStats = /*[[${dashboardStats}]]*/ {};
+        const userName = /*[[${employeeName}]]*/ 'Employee';
+        /*]]>*/
 
         // INITIALIZE
         document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('userName').textContent = `${userName}'s Dashboard`;
+            // Capitalize USERNAME for display
+            const displayUser = userName ? userName.toUpperCase() : 'EMPLOYEE';
+            document.getElementById('userName').textContent = `${displayUser}'S DASHBOARD`;
             initChart();
             handleUrlParams();
+
+            // Setup Form Listeners
+            const assignForm = document.getElementById('assignForm');
+            if (assignForm) {
+                assignForm.addEventListener('submit', handleAssignSubmit);
+            }
+
+            const completeForm = document.getElementById('completeForm');
+            if (completeForm) {
+                completeForm.addEventListener('submit', handleCompleteSubmit);
+            }
         });
 
         function handleUrlParams() {
@@ -1209,14 +1248,21 @@
 
         // CHART.JS INITIALIZATION
         function initChart() {
+            if (!dashboardStats || !dashboardStats.chart_data) return;
+
+            const data = dashboardStats.chart_data;
+            const labels = data.map(d => d.name);
+            const values = data.map(d => d.value);
+            const colors = data.map(d => d.color);
+
             const ctx = document.getElementById('taskChart').getContext('2d');
             new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['On Time', 'In Progress', 'Delayed', 'Overdue'],
+                    labels: labels,
                     datasets: [{
-                        data: [30, 12, 8, 5],
-                        backgroundColor: ['#22c55e', '#3b82f6', '#facc15', '#ef4444'],
+                        data: values,
+                        backgroundColor: colors,
                         borderWidth: 0
                     }]
                 },
@@ -1245,8 +1291,22 @@
             document.getElementById('completeModal').classList.remove('show');
         }
 
-        function openAssignModal() {
+        function openAssignModal(forSelf = false) {
             document.getElementById('assignModal').classList.add('show');
+            if (forSelf && typeof userName !== 'undefined') {
+                const select = document.getElementById('assignUser');
+                // Select option by text (name)
+                // Since values are names now, we can set the value directly
+                select.value = userName;
+
+                // If direct value assignment fails (e.g. case sensitivity), try finding option
+                for (let i = 0; i < select.options.length; i++) {
+                    if (select.options[i].text.toLowerCase() === userName.toLowerCase()) {
+                        select.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
         }
 
         function closeAssignModal() {
@@ -1259,6 +1319,43 @@
 
         function closeBulkModal() {
             document.getElementById('bulkModal').classList.remove('show');
+        }
+
+        // HANDLE ASSIGN SUBMIT
+        async function handleAssignSubmit(e) {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('title', document.getElementById('assignTaskName').value);
+            formData.append('clientName', document.getElementById('assignClient').value);
+            formData.append('projectName', document.getElementById('assignProject').value);
+            formData.append('assignedToName', document.getElementById('assignUser').value); // Send Name as ID/Name
+            formData.append('targetDate', document.getElementById('assignDate').value);
+
+            const fileInput = document.getElementById('assignFile');
+            if (fileInput.files.length > 0) {
+                formData.append('file', fileInput.files[0]);
+            }
+
+            try {
+                const response = await fetch('/employee/task-manager/api/tasks', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    alert('Task assigned successfully!');
+                    closeAssignModal();
+                    // Reload page to show new task (or fetch via AJAX)
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Error assigning task: ' + (error.error || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Failed to assign task.');
+            }
         }
 
         // CLOSE MODAL ON OUTSIDE CLICK

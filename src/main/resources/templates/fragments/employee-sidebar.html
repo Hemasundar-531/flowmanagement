@@ -31,7 +31,8 @@
             }
 
             .emp-sidebar.collapsed {
-                width: 72px;
+                width: 0;
+                overflow: hidden;
             }
 
             .emp-sidebar.collapsed .sidebar-brand-text,
@@ -44,13 +45,40 @@
                 display: none;
             }
 
-            .emp-sidebar.collapsed .nav-item {
-                justify-content: center;
-                padding: 12px;
+            /* Ensure toggle button inside sidebar is hidden when collapsed (since width is 0 and overflow hidden) */
+
+            .emp-main-content.sidebar-collapsed {
+                margin-left: 0;
             }
 
-            .emp-sidebar.collapsed .nav-item .nav-icon {
-                margin-right: 0;
+            .emp-sidebar.collapsed .nav-item {
+                /* Not needed if hidden */
+            }
+
+            .open-sidebar-btn {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                width: 40px;
+                height: 40px;
+                border-radius: 10px;
+                background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+                /* Orange gradient */
+                color: #fff;
+                border: none;
+                cursor: pointer;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 900;
+                box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .open-sidebar-btn:hover {
+                transform: scale(1.1);
+                box-shadow: 0 6px 16px rgba(249, 115, 22, 0.5);
+                background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
             }
 
             .sidebar-header {
@@ -59,6 +87,34 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
+                min-width: 260px;
+                /* Prevent shrinking when animating */
+            }
+
+            .sidebar-nav {
+                flex: 1;
+                overflow-y: auto;
+                padding: 16px 12px;
+                min-width: 260px;
+                /* Prevent content squishing */
+            }
+
+            /* ... rest of existing styles ... */
+
+            /* Fix mobile override */
+            @media (max-width: 1024px) {
+                .emp-main-content.sidebar-collapsed {
+                    margin-left: 0;
+                }
+            }
+
+            .emp-sidebar.collapsed .nav-item {
+                justify-content: center;
+                padding: 12px;
+            }
+
+            .emp-sidebar.collapsed .nav-item .nav-icon {
+                margin-right: 0;
             }
 
             .sidebar-brand {
@@ -95,29 +151,27 @@
                 width: 32px;
                 height: 32px;
                 border: none;
-                background: rgba(255, 255, 255, 0.1);
+                background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+                /* Orange gradient */
                 border-radius: 8px;
                 color: #fff;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                transition: background 0.2s;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
             }
 
             .sidebar-toggle:hover {
-                background: rgba(255, 255, 255, 0.2);
+                transform: scale(1.1);
+                box-shadow: 0 6px 16px rgba(249, 115, 22, 0.5);
+                background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
             }
 
             .sidebar-toggle svg {
                 width: 18px;
                 height: 18px;
-            }
-
-            .sidebar-nav {
-                flex: 1;
-                overflow-y: auto;
-                padding: 16px 12px;
             }
 
             .nav-section {
@@ -297,10 +351,6 @@
                 transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
 
-            .emp-main-content.sidebar-collapsed {
-                margin-left: 72px;
-            }
-
             @media (max-width: 1024px) {
                 .emp-sidebar {
                     transform: translateX(-100%);
@@ -348,6 +398,13 @@
 
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileSidebar()"></div>
 
+        <!-- Floating Open Button -->
+        <button id="openSidebarBtn" class="open-sidebar-btn" onclick="toggleSidebar()" title="Open Menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                <path d="M9 18l6-6-6-6" />
+            </svg>
+        </button>
+
         <aside class="emp-sidebar" id="empSidebar">
             <div class="sidebar-header">
                 <div class="sidebar-brand">
@@ -357,7 +414,8 @@
                         <span>Employee Portal</span>
                     </div>
                 </div>
-                <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">
+                <!-- Close Button (inside sidebar) -->
+                <button class="sidebar-toggle" onclick="toggleSidebar()" title="Close Sidebar">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M15 18l-6-6 6-6" />
                     </svg>
@@ -365,24 +423,6 @@
             </div>
 
             <nav class="sidebar-nav">
-                <div class="nav-section">
-                    <div class="nav-section-title">Main Menu</div>
-                    <ul class="nav-list">
-                        <li>
-                            <a th:href="@{/employee/dashboard}" class="nav-item" data-page="dashboard">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <rect x="3" y="3" width="7" height="9" rx="1" />
-                                    <rect x="14" y="3" width="7" height="5" rx="1" />
-                                    <rect x="14" y="12" width="7" height="9" rx="1" />
-                                    <rect x="3" y="16" width="7" height="5" rx="1" />
-                                </svg>
-                                <span class="nav-text">Dashboard</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
                 <div class="nav-section"
                     th:if="${permissions != null and (permissions.contains('ORDER_ENTRY') or permissions.contains('TASK_MANAGER'))}">
                     <div class="nav-section-title">Assignment Modules</div>
@@ -417,32 +457,16 @@
                     <div class="nav-section" th:if="${hasFms}">
                         <div class="nav-section-title">FMS Modules</div>
                         <ul class="nav-list">
-                            <li>
-                                <button class="nav-item has-submenu" onclick="toggleSubmenu(this)">
+                            <li th:each="folder : ${fmsFolders}">
+                                <a th:href="@{/employee/fms/{folderId}(folderId=${folder.id})}" class="nav-item"
+                                    th:data-page="|fms/${folder.id}|">
                                     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2">
                                         <path
                                             d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
                                     </svg>
-                                    <span class="nav-text">FMS</span>
-                                    <svg class="submenu-arrow" viewBox="0 0 24 24" fill="currentColor">
-                                        <path
-                                            d="M8.6 7.4a1 1 0 0 1 1.4 0l4 4a1 1 0 0 1 0 1.4l-4 4a1 1 0 0 1-1.4-1.4L12.2 12 8.6 8.6a1 1 0 0 1 0-1.4Z" />
-                                    </svg>
-                                </button>
-                                <ul class="submenu" id="fmsSubmenu">
-                                    <li th:each="folder : ${fmsFolders}">
-                                        <a th:href="@{/employee/fms/{folderId}(folderId=${folder.id})}" class="nav-item"
-                                            th:data-page="|fms/${folder.id}|">
-                                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                stroke-width="2">
-                                                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
-                                                <path d="M13 2v7h7" />
-                                            </svg>
-                                            <span class="nav-text" th:text="${folder.name}">Folder Name</span>
-                                        </a>
-                                    </li>
-                                </ul>
+                                    <span class="nav-text" th:text="${folder.name}">Folder Name</span>
+                                </a>
                             </li>
                         </ul>
                     </div>
@@ -484,10 +508,18 @@
             function toggleSidebar() {
                 const sidebar = document.getElementById('empSidebar');
                 const mainContent = document.querySelector('.emp-main-content');
-                const toggleBtn = document.querySelector('.sidebar-toggle svg');
+                const openBtn = document.getElementById('openSidebarBtn');
+
                 sidebar.classList.toggle('collapsed');
                 if (mainContent) mainContent.classList.toggle('sidebar-collapsed');
-                toggleBtn.style.transform = sidebar.classList.contains('collapsed') ? 'rotate(180deg)' : 'rotate(0deg)';
+
+                // Toggle open button visibility
+                if (sidebar.classList.contains('collapsed')) {
+                    if (openBtn) openBtn.style.display = 'flex';
+                } else {
+                    if (openBtn) openBtn.style.display = 'none';
+                }
+
                 localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
             }
 
@@ -515,12 +547,17 @@
 
             document.addEventListener('DOMContentLoaded', function () {
                 const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                const sidebar = document.getElementById('empSidebar');
+                const openBtn = document.getElementById('openSidebarBtn');
+
                 if (isCollapsed) {
-                    document.getElementById('empSidebar').classList.add('collapsed');
+                    sidebar.classList.add('collapsed');
                     const mainContent = document.querySelector('.emp-main-content');
                     if (mainContent) mainContent.classList.add('sidebar-collapsed');
-                    const toggleBtn = document.querySelector('.sidebar-toggle svg');
-                    if (toggleBtn) toggleBtn.style.transform = 'rotate(180deg)';
+
+                    if (openBtn) openBtn.style.display = 'flex';
+                } else {
+                    if (openBtn) openBtn.style.display = 'none';
                 }
 
                 const currentPath = window.location.pathname;
@@ -529,15 +566,6 @@
                         item.classList.add('active');
                     }
                 });
-
-                if (currentPath.includes('/fms')) {
-                    const fmsBtn = document.querySelector('.has-submenu');
-                    if (fmsBtn) {
-                        fmsBtn.classList.add('expanded');
-                        const submenu = fmsBtn.parentElement.querySelector('.submenu');
-                        if (submenu) submenu.classList.add('show');
-                    }
-                }
             });
         </script>
     </th:block>

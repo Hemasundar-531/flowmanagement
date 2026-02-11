@@ -19,6 +19,9 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.stream.Collectors;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/employee/task-manager")
@@ -26,15 +29,23 @@ public class TaskController {
 
     private final TaskService taskService;
     private final UserRepository userRepository;
+    private final com.company.flowmanagement.service.EmployeeService employeeService;
 
-    public TaskController(TaskService taskService, UserRepository userRepository) {
+    public TaskController(TaskService taskService, UserRepository userRepository,
+            com.company.flowmanagement.service.EmployeeService employeeService) {
         this.taskService = taskService;
         this.userRepository = userRepository;
+        this.employeeService = employeeService;
     }
 
     @GetMapping
     public String taskManager(Model model, Authentication authentication) {
         String username = authentication.getName();
+
+        // Load partial employee context first (for name, permissions, sidebar)
+        model.addAllAttributes(employeeService.getEmployeeContext(username));
+        model.addAttribute("allEmployees", employeeService.getAllEmployees());
+
         User user = userRepository.findByUsername(username);
 
         if (user != null) {
@@ -54,7 +65,6 @@ public class TaskController {
             model.addAttribute("delegatedTasks", tasks.get("delegatedTasks"));
         }
 
-        model.addAttribute("employeeName", username);
         return "employee-task-manager";
     }
 
@@ -89,6 +99,14 @@ public class TaskController {
                 task.setAssignedById(user.getId());
                 task.setAssignedByName(username);
 
+                // Resolve assignedToId from assignedToName
+                if (task.getAssignedToName() != null) {
+                    User assignedUser = userRepository.findByUsername(task.getAssignedToName());
+                    if (assignedUser != null) {
+                        task.setAssignedToId(assignedUser.getId());
+                    }
+                }
+
                 // Handle file upload
                 if (file != null && !file.isEmpty()) {
                     String fileName = saveFile(file);
@@ -119,6 +137,14 @@ public class TaskController {
                 tasks.forEach(task -> {
                     task.setAssignedById(user.getId());
                     task.setAssignedByName(username);
+
+                    // Resolve assignedToId from assignedToName
+                    if (task.getAssignedToName() != null) {
+                        User assignedUser = userRepository.findByUsername(task.getAssignedToName());
+                        if (assignedUser != null) {
+                            task.setAssignedToId(assignedUser.getId());
+                        }
+                    }
                 });
 
                 List<Task> savedTasks = taskService.createBulkTasks(tasks);
@@ -149,12 +175,8 @@ public class TaskController {
                 fileName = saveFile(file);
             }
 
-            Task updatedTask = taskService.updateTaskStatus(taskId, "Completed", remarks, completionDate);
+            Task updatedTask = taskService.updateTaskStatus(taskId, "Completed", remarks, completionDate, fileName);
             if (updatedTask != null) {
-                if (fileName != null) {
-                    updatedTask.setCompletionFile(fileName);
-                    taskService.createTask(updatedTask); // Save again with file
-                }
                 return ResponseEntity.ok(updatedTask);
             }
 
@@ -175,7 +197,7 @@ public class TaskController {
 
             List<Task> updatedTasks = taskIds.stream()
                     .map(taskId -> taskService.updateTaskStatus(taskId, "Completed",
-                            "Completed via bulk action", completionDate))
+                            "Completed via bulk action", completionDate, null))
                     .filter(task -> task != null)
                     .toList();
 

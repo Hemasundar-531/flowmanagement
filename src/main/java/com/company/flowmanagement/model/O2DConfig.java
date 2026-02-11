@@ -24,8 +24,8 @@ public class O2DConfig {
     private String mpd;
     private String startDate;
 
-    private List<String> orderDetails = new ArrayList<>();
-    private List<ProcessStep> processDetails = new ArrayList<>();
+    private ArrayList<String> orderDetails = new ArrayList<>();
+    private ArrayList<ProcessStep> processDetails = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -115,19 +115,19 @@ public class O2DConfig {
         this.startDate = startDate;
     }
 
-    public List<String> getOrderDetails() {
+    public ArrayList<String> getOrderDetails() {
         return orderDetails;
     }
 
-    public void setOrderDetails(List<String> orderDetails) {
+    public void setOrderDetails(ArrayList<String> orderDetails) {
         this.orderDetails = orderDetails;
     }
 
-    public List<ProcessStep> getProcessDetails() {
+    public ArrayList<ProcessStep> getProcessDetails() {
         return processDetails;
     }
 
-    public void setProcessDetails(List<ProcessStep> processDetails) {
+    public void setProcessDetails(ArrayList<ProcessStep> processDetails) {
         this.processDetails = processDetails;
     }
 }
