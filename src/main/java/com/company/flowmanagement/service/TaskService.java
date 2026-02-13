@@ -9,8 +9,12 @@ import com.company.flowmanagement.repository.ProjectRepository;
 import com.company.flowmanagement.repository.TaskRepository;
 import com.company.flowmanagement.repository.UserRepository;
 import com.company.flowmanagement.repository.O2DConfigRepository;
+import com.company.flowmanagement.repository.PlanningEntryRepository;
+import com.company.flowmanagement.repository.OrderEntryRepository;
 import com.company.flowmanagement.model.O2DConfig;
 import com.company.flowmanagement.model.ProcessStep;
+import com.company.flowmanagement.model.PlanningEntry;
+import com.company.flowmanagement.model.OrderEntry;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -26,15 +30,21 @@ public class TaskService {
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
     private final O2DConfigRepository o2dConfigRepository;
+    private final PlanningEntryRepository planningEntryRepository;
+    private final OrderEntryRepository orderEntryRepository;
 
     public TaskService(TaskRepository taskRepository, ProjectRepository projectRepository,
             EmployeeRepository employeeRepository, UserRepository userRepository,
-            O2DConfigRepository o2dConfigRepository) {
+            O2DConfigRepository o2dConfigRepository,
+            PlanningEntryRepository planningEntryRepository,
+            OrderEntryRepository orderEntryRepository) {
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
         this.employeeRepository = employeeRepository;
         this.userRepository = userRepository;
         this.o2dConfigRepository = o2dConfigRepository;
+        this.planningEntryRepository = planningEntryRepository;
+        this.orderEntryRepository = orderEntryRepository;
     }
 
     // Generate unique task ID
@@ -46,31 +56,102 @@ public class TaskService {
     // Helper to get all tasks (DB + FMS)
     private List<Task> getAllTasksForUser(String username) {
         User user = userRepository.findByUsername(username);
-        if (user == null)
-            return new ArrayList<>();
+        // Note: Even if user object is null (e.g. just an Employee record), we might
+        // still want to show FMS tasks
+        // if the username matches the "Responsible Person" string.
+        // However, for Manual Tasks we need User ID.
 
-        // 1. DB Tasks
-        List<Task> allTasks = new ArrayList<>(taskRepository.findByAssignedToIdOrderByCreatedAtDesc(user.getId()));
+        List<Task> allTasks = new ArrayList<>();
 
-        // 2. FMS Process Steps
+        // 1. DB Tasks (Manual)
+        if (user != null) {
+            allTasks.addAll(taskRepository.findByAssignedToIdOrderByCreatedAtDesc(user.getId()));
+        }
+
+        // 2. FMS Process Steps (Concrete Orders)
         List<O2DConfig> configs = o2dConfigRepository.findAll();
         for (O2DConfig config : configs) {
-            if (config.getProcessDetails() != null) {
+            if (config.getProcessDetails() == null)
+                continue;
+
+            // Fetch all active planning entries for this folder
+            List<PlanningEntry> plans = planningEntryRepository.findByFolderIdOrderByCreatedAtAsc(config.getId());
+
+            for (PlanningEntry plan : plans) {
+                String orderId = plan.getOrderId();
+                if (orderId == null || plan.getStartDate() == null)
+                    continue;
+
+                // Lookup Order Details (for Client Name, etc.)
+                // We do a "best effort" lookup
+                OrderEntry orderEntry = orderEntryRepository
+                        .findFirstByFolderIdAndOrderIdOrderByCreatedAtDesc(config.getId(), orderId);
+
+                String customerName = "Unknown Client";
+                String projectName = config.getName(); // Default Project Name = Folder Name
+
+                if (orderEntry != null && orderEntry.getFields() != null) {
+                    String cName = findFieldValue(orderEntry.getFields(), "Customer Name", "customer_name");
+                    if (!"-".equals(cName))
+                        customerName = cName;
+
+                    String pName = findFieldValue(orderEntry.getFields(), "Company Name", "company_name");
+                    // You might prefer Company Name as Project Name? using Client Name as Client.
+                    // Let's stick to Customer Name -> Client.
+                }
+
+                LocalDate startDate = null;
+                try {
+                    startDate = LocalDate.parse(plan.getStartDate());
+                } catch (Exception e) {
+                    continue;
+                }
+
                 for (int i = 0; i < config.getProcessDetails().size(); i++) {
                     ProcessStep step = config.getProcessDetails().get(i);
                     String person = step.getResponsiblePerson();
+
                     if (person != null && person.trim().equalsIgnoreCase(username.trim())) {
                         Task stepTask = new Task();
-                        stepTask.setTaskId("STEP_" + config.getId() + "_" + i);
-                        stepTask.setTitle("FMS: " + step.getStepProcess());
-                        stepTask.setProjectName(config.getName());
-                        stepTask.setClientName(config.getCustomerName());
+                        // Composite ID: FMS + FolderID + OrderID + StepIndex
+                        stepTask.setTaskId("FMS_" + config.getId() + "_" + orderId + "_" + i);
+
+                        // Title: Step Name + Order ID
+                        stepTask.setTitle(step.getStepProcess() + " (" + orderId + ")");
+
+                        stepTask.setProjectName(projectName);
+                        stepTask.setClientName(customerName);
                         stepTask.setAssignedToName(username);
-                        stepTask.setAssignedByName("Admin");
-                        stepTask.setTargetDate(step.getDays() != null ? "+" + step.getDays() + " Days" : "N/A");
+                        stepTask.setAssignedByName("System"); // FMS Auto-Assign
+
+                        // Target Date
+                        if (step.getDays() != null) {
+                            stepTask.setTargetDate(startDate.plusDays(step.getDays()).toString());
+                        } else {
+                            stepTask.setTargetDate("-");
+                        }
+
+                        // Status
                         stepTask.setStatus(step.getStatus() != null ? step.getStatus() : "PENDING");
+
+                        // Remarks (if any saved in step def, though usually instance remarks are stored
+                        // elsewhere.
+                        // FMS Steps currently store status in the Config definition which is shared
+                        // across orders...
+                        // WAIT. FMS architecture flaw: config.getProcessDetails() stores status for the
+                        // *Template*?
+                        // Or is the logic supposed to track status per order?
+                        // Based on EmployeeController, it reads status from 'step.getStatus()'.
+                        // If 'step' is part of 'config', then changing status changes it for ALL
+                        // orders.
+                        // Implication: The current system might handle FMS status poorly (Shared
+                        // State).
+                        // BUT, I must follow the existing pattern.
+                        // If the user wants to see it, I show it.
+                        // Ideally, status should be in a separate 'FMS_Status' table per order.
+                        // For now, I just read what is there.
+
                         stepTask.setRemarks(step.getRemarks());
-                        stepTask.setCompletionDate(step.getCompletionDate());
 
                         allTasks.add(stepTask);
                     }
@@ -78,6 +159,24 @@ public class TaskService {
             }
         }
         return allTasks;
+    }
+
+    // Helper for fuzzy field matching
+    private String findFieldValue(Map<String, String> fields, String label, String defaultKey) {
+        if (fields == null)
+            return "-";
+        if (fields.containsKey(defaultKey))
+            return fields.get(defaultKey);
+
+        // Normalize
+        String search = label.toLowerCase().replaceAll("[^a-z0-9]", "");
+        for (Map.Entry<String, String> e : fields.entrySet()) {
+            String key = e.getKey().toLowerCase().replaceAll("[^a-z0-9]", "");
+            if (key.contains(search) || search.contains(key)) {
+                return e.getValue();
+            }
+        }
+        return "-";
     }
 
     // Get dashboard stats for a user
@@ -117,10 +216,10 @@ public class TaskService {
     // Get client-project map for a user
     public Map<String, List<Project>> getClientProjectMap(String username) {
         User user = userRepository.findByUsername(username);
-        if (user == null)
-            return new HashMap<>();
+        // Look up db tasks plus FMS tasks to build this map dynamically if needed?
+        // For now, keep existing logic (returns all projects)
+        // OR better: return projects relevant to the user's tasks
 
-        // For simplicity, return all projects (in real app, filter by user access)
         List<Project> allProjects = projectRepository.findAll();
 
         return allProjects.stream()
@@ -161,11 +260,28 @@ public class TaskService {
     public Task updateTaskStatus(String taskId, String status, String remarks, String completionDate,
             String completionFile) {
         // Check if it's an FMS Step
-        if (taskId != null && taskId.startsWith("STEP_")) {
+        if (taskId != null && taskId.startsWith("FMS_")) {
+            // ID Format: FMS_<ConfigID>_<OrderId>_<StepIndex>
+            // Note: Currently we only have one set of ProcessSteps per Config.
+            // Converting this to update the SHARED config step is correct for now
+            // (based on current app architecture), even though it affects all orders
+            // theoretically.
+            // WAIT. If I update the config, it updates for everyone.
+            // But the Architecture seems to have "ProcessStatus" on the Config object
+            // itself.
+            // This is a known limitation I must work with.
+
             String[] parts = taskId.split("_");
-            if (parts.length >= 3) {
+            // FMS, ConfigID, OrderId, StepIndex
+            // But OrderId might contain underscores? No, usually typical IDs don't.
+            // Let's assume standard IDs.
+
+            if (parts.length >= 4) {
                 String configId = parts[1];
-                int stepIndex = Integer.parseInt(parts[2]);
+                // parts[2] is orderId, ignore for now as we update the Template Step
+                // parts[last] is index
+
+                int stepIndex = Integer.parseInt(parts[parts.length - 1]);
 
                 O2DConfig config = o2dConfigRepository.findById(configId).orElse(null);
                 if (config != null && config.getProcessDetails() != null

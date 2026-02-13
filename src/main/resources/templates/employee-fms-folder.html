@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 
 <head>
@@ -821,9 +821,9 @@
             <!-- BREADCRUMB -->
             <div class="breadcrumb" style="padding: 0 16px;">
                 <a th:href="@{/employee/dashboard}">Dashboard</a>
-                <span>›</span>
+                <span>â€º</span>
                 <span>FMS</span>
-                <span>›</span>
+                <span>â€º</span>
                 <span th:text="${currentFolder != null ? currentFolder.name : 'Folder'}">Folder</span>
             </div>
 
@@ -933,36 +933,89 @@
                 </button>
             </div>
 
-            <!-- OVERDUE TASKS TABLE -->
-            <div class="table-container" th:if="${fmsOverdueTasks != null and !fmsOverdueTasks.isEmpty()}"
-                style="border-top: 4px solid #ef4444;">
+            <!-- DYNAMIC FMS STEP TABLES (PENDING) -->
+            <div class="table-container" th:each="entry : ${fmsPendingTasksByStep}">
                 <div class="table-header">
-                    <h3 style="color: #ef4444;">Overdue Tasks</h3>
-                    <span class="badge" th:text="${fmsOverdueTasks.size() + ' Records'}"
-                        style="background: #fee2e2; color: #991b1b;">0 Records</span>
+                    <h3 th:text="${entry.key}">Step Name</h3>
+                    <span class="badge" th:text="${entry.value.size() + ' Records'}">0 Records</span>
                 </div>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
                             <tr>
-                                <th>S.NO</th>
-                                <th>ORDER ID</th>
-                                <th>CUSTOMER NAME</th>
-                                <th>TASK</th>
-                                <th>TARGET DATE</th>
-                                <th class="text-center">STATUS</th>
+                                <th>S.No</th>
+                                <th>Order ID</th>
+                                <th>Customer Name</th>
+                                <th>Task</th>
+                                <th>Resp. Person</th>
+                                <th>Target Date</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="task : ${entry.value}">
+                                <td class="text-center" th:text="${task.sr}">1</td>
+                                <td class="task-id" th:text="${task.orderId}">ORD-001</td>
+                                <td th:text="${task.customerName}">Customer</td>
+                                <td class="task-title" th:text="${task.taskName}">Step Name</td>
+                                <td th:text="${task.responsiblePerson}">User</td>
+                                <td th:text="${task.targetDate}">2024-01-01</td>
+                                <td class="text-center">
+                                    <span class="status-badge in-progress" th:text="${task.status}">Pending</span>
+                                </td>
+                                <td class="text-center">
+                                    <button class="table-action-btn complete"
+                                        onclick="openCompleteModal()">Update</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- FMS OVERDUE TASKS (MOVED TO BOTTOM) -->
+            <div class="table-container" style="border-top: 4px solid #ef4444;">
+                <div class="table-header" style="background: #fee2e2;">
+                    <h3 style="color: #991b1b;">Overdue FMS Tasks</h3>
+                    <span class="badge" style="background: #fecaca; color: #991b1b;"
+                        th:text="${(fmsOverdueTasks != null ? fmsOverdueTasks.size() : 0) + ' Records'}">0
+                        Records</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>S.No</th>
+                                <th>Order ID</th>
+                                <th>Customer Name</th>
+                                <th>Task</th>
+                                <th>Resp. Person</th>
+                                <th>Target Date</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:each="task : ${fmsOverdueTasks}">
-                                <td th:text="${task.sr}">1</td>
+                                <td class="text-center" th:text="${task.sr}">1</td>
                                 <td class="task-id" th:text="${task.orderId}">ORD-001</td>
-                                <td th:text="${task.customerName}">Client A</td>
-                                <td class="task-title" th:text="${task.taskName}">Step 1</td>
-                                <td style="color: #ef4444; font-weight: 700;" th:text="${task.targetDate}">2024-10-25
+                                <td th:text="${task.customerName}">Customer</td>
+                                <td class="task-title" th:text="${task.taskName}">Step Name</td>
+                                <td th:text="${task.responsiblePerson}">User</td>
+                                <td style="color: #ef4444; font-weight: 700;" th:text="${task.targetDate}">2024-01-01
                                 </td>
                                 <td class="text-center">
-                                    <span class="status-badge overdue" th:text="${task.status}">Overdue</span>
+                                    <span class="status-badge overdue">Overdue</span>
+                                </td>
+                                <td class="text-center">
+                                    <button class="table-action-btn complete"
+                                        onclick="openCompleteModal()">Update</button>
+                                </td>
+                            </tr>
+                            <tr th:if="${fmsOverdueTasks == null or fmsOverdueTasks.isEmpty()}">
+                                <td colspan="7" class="text-center" style="padding: 20px; color: #94a3b8;">No overdue
+                                    tasks found.
                                 </td>
                             </tr>
                         </tbody>
@@ -970,73 +1023,46 @@
                 </div>
             </div>
 
-            <!-- PENDING / IN PROGRESS TASKS TABLE -->
-            <div class="table-container" th:if="${fmsPendingTasks != null and !fmsPendingTasks.isEmpty()}">
-                <div class="table-header">
-                    <h3>Pending Tasks</h3>
-                    <span class="badge" th:text="${fmsPendingTasks.size() + ' Records'}">0 Records</span>
+            <!-- FMS COMPLETED TASKS -->
+            <div class="table-container" style="border-top: 4px solid #10b981;">
+                <div class="table-header" style="background: #ecfdf5;">
+                    <h3 style="color: #065f46;">Completed FMS Tasks</h3>
+                    <span class="badge" style="background: #d1fae5; color: #065f46;"
+                        th:text="${(fmsCompletedTasks != null ? fmsCompletedTasks.size() : 0) + ' Records'}">0
+                        Records</span>
                 </div>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
                             <tr>
-                                <th>S.NO</th>
-                                <th>ORDER ID</th>
-                                <th>CUSTOMER NAME</th>
-                                <th>TASK</th>
-                                <th>TARGET DATE</th>
-                                <th class="text-center">STATUS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="task : ${fmsPendingTasks}">
-                                <td th:text="${task.sr}">1</td>
-                                <td class="task-id" th:text="${task.orderId}">ORD-001</td>
-                                <td th:text="${task.customerName}">Client A</td>
-                                <td class="task-title" th:text="${task.taskName}">Step 1</td>
-                                <td style="color: #64748b; font-weight: 700;" th:text="${task.targetDate}">2024-10-25
-                                </td>
-                                <td class="text-center">
-                                    <span class="status-badge"
-                                        th:classappend="${#strings.toLowerCase(task.status) == 'in progress' ? 'in-progress' : 'on-time'}"
-                                        th:text="${task.status}">Pending</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- COMPLETED TASKS TABLE -->
-            <div class="table-container" th:if="${fmsCompletedTasks != null and !fmsCompletedTasks.isEmpty()}"
-                style="border-top: 4px solid #10b981;">
-                <div class="table-header">
-                    <h3 style="color: #059669;">Completed Tasks</h3>
-                    <span class="badge" th:text="${fmsCompletedTasks.size() + ' Records'}"
-                        style="background: #d1fae5; color: #065f46;">0 Records</span>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>S.NO</th>
-                                <th>ORDER ID</th>
-                                <th>CUSTOMER NAME</th>
-                                <th>TASK</th>
-                                <th>TARGET DATE</th>
-                                <th class="text-center">STATUS</th>
+                                <th>S.No</th>
+                                <th>Order ID</th>
+                                <th>Customer Name</th>
+                                <th>Task</th>
+                                <th>Resp. Person</th>
+                                <th>Target Date</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:each="task : ${fmsCompletedTasks}">
-                                <td th:text="${task.sr}">1</td>
+                                <td class="text-center" th:text="${task.sr}">1</td>
                                 <td class="task-id" th:text="${task.orderId}">ORD-001</td>
-                                <td th:text="${task.customerName}">Client A</td>
-                                <td class="task-title" th:text="${task.taskName}">Step 1</td>
-                                <td style="color: #10b981; font-weight: 700;" th:text="${task.targetDate}">2024-10-25
+                                <td th:text="${task.customerName}">Customer</td>
+                                <td class="task-title" th:text="${task.taskName}">Step Name</td>
+                                <td th:text="${task.responsiblePerson}">User</td>
+                                <td th:text="${task.targetDate}">2024-01-01</td>
+                                <td class="text-center">
+                                    <span class="status-badge completed">Completed</span>
                                 </td>
                                 <td class="text-center">
-                                    <span class="status-badge completed" th:text="${task.status}">Completed</span>
+                                    <span style="font-size: 10px; color: #64748b;">Done</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${fmsCompletedTasks == null or fmsCompletedTasks.isEmpty()}">
+                                <td colspan="7" class="text-center" style="padding: 20px; color: #94a3b8;">No completed
+                                    tasks found.
                                 </td>
                             </tr>
                         </tbody>
@@ -1044,10 +1070,10 @@
                 </div>
             </div>
 
-            <!-- MY TASKS TABLE -->
+            <!-- ORDER DETAILS TABLE -->
             <div class="table-container">
                 <div class="table-header">
-                    <h3>My Tasks (General)</h3>
+                    <h3>Order Details</h3>
                     <span class="badge" th:text="${(myTasks != null ? myTasks.size() : 0) + ' Records'}">0
                         Records</span>
                 </div>
@@ -1055,10 +1081,9 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Task ID</th>
-                                <th>Task</th>
-                                <th>Assigned By</th>
-                                <th>Project / Client</th>
+                                <th>Order No</th>
+                                <th>Description</th>
+                                <th>Client</th>
                                 <th>Target Date</th>
                                 <th class="text-center">Status</th>
                                 <th class="text-center">Action</th>
@@ -1068,15 +1093,12 @@
                             <tr th:each="task : ${myTasks}">
                                 <td class="task-id" th:text="${task.id}">TSK-101</td>
                                 <td class="task-title" th:text="${task.title}">Design Mockups</td>
-                                <td th:text="${task.assignedByName}">John Doe</td>
-                                <td class="task-meta" th:text="${task.projectName + ' / ' + task.clientName}">Project
-                                    Alpha / Client A</td>
+                                <td th:text="${task.clientName}">Client A</td>
                                 <td style="color: #64748b; font-weight: 700;" th:text="${task.targetDate}">2024-10-25
                                 </td>
                                 <td class="text-center">
                                     <span class="status-badge"
-                                        th:classappend="${#strings.toLowerCase(task.status) == 'completed' ? 'completed' : 
-                                                           #strings.toLowerCase(task.status) == 'in progress' ? 'in-progress' : 'on-time'}"
+                                        th:classappend="${#strings.toLowerCase(task.status) == 'completed' ? 'completed' : #strings.toLowerCase(task.status) == 'in progress' ? 'in-progress' : 'on-time'}"
                                         th:text="${task.status}">On Time</span>
                                 </td>
                                 <td class="text-center">
@@ -1090,7 +1112,7 @@
                                 </td>
                             </tr>
                             <tr th:if="${myTasks == null or myTasks.isEmpty()}">
-                                <td colspan="7" class="text-center" style="padding: 20px;">No tasks assigned to you.
+                                <td colspan="6" class="text-center" style="padding: 20px;">No orders found.
                                 </td>
                             </tr>
                         </tbody>
@@ -1124,7 +1146,8 @@
                                 <td class="task-title" th:text="${task.title}">Code Review</td>
                                 <td th:text="${task.assignedToName}">Mike Wilson</td>
                                 <td class="task-meta" th:text="${task.projectName + ' / ' + task.clientName}">Project
-                                    Gamma / Client C</td>
+                                    Gamma / Client
+                                    C</td>
                                 <td style="color: #f97316; font-weight: 700;" th:text="${task.targetDate}">2024-10-20
                                 </td>
                                 <td class="text-center">
@@ -1132,7 +1155,7 @@
                                         th:classappend="${#strings.toLowerCase(task.status) == 'completed' ? 'completed' : 'in-progress'}"
                                         th:text="${task.status}">In Progress</span>
                                 </td>
-                                <td class="text-center" th:text="${task.assignedFile != null ? 'View' : '—'}">—</td>
+                                <td class="text-center" th:text="${task.assignedFile != null ? 'View' : 'â€”'}">â€”</td>
                             </tr>
                             <tr th:if="${delegatedTasks == null or delegatedTasks.isEmpty()}">
                                 <td colspan="7" class="text-center" style="padding: 20px;">No tasks delegated by you.
@@ -1228,7 +1251,8 @@
                         <select class="form-control" id="assignUser" required>
                             <option value="">Select Team Member</option>
                             <option th:each="emp : ${allEmployees}" th:value="${emp.name}" th:text="${emp.name}">
-                                Employee Name</option>
+                                Employee
+                                Name</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1270,7 +1294,8 @@
             <div class="modal-body" style="padding: 32px;">
                 <p style="font-size: 12px; color: #64748b; margin-bottom: 24px;">
                     <strong>Note:</strong> Full functionality with editable table will be added later. For now, this is
-                    a placeholder.
+                    a
+                    placeholder.
                 </p>
                 <div
                     style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 40px; text-align: center;">

@@ -334,23 +334,20 @@ public class EmployeeController {
 
             List<Map<String, String>> fmsOverdueTasks = new ArrayList<>();
             List<Map<String, String>> fmsCompletedTasks = new ArrayList<>();
-            List<Map<String, String>> fmsPendingTasks = new ArrayList<>();
+            Map<String, List<Map<String, String>>> fmsPendingTasksByStep = new LinkedHashMap<>();
 
             try {
                 if (folderOpt.isPresent() && folderOpt.get().getProcessDetails() != null) {
                     O2DConfig config = folderOpt.get();
                     int taskSr = 1;
 
-                    System.out
-                            .println("FMS Folder: Processing " + planningEntries.size() + " orders for user: "
-                                    + username);
+                    System.out.println(
+                            "FMS Folder: Processing " + planningEntries.size() + " orders for user: " + username);
                     for (PlanningEntry plan : planningEntries) {
                         String orderId = plan.getOrderId();
                         String startDateStr = plan.getStartDate();
-                        System.out.println("Processing Order: " + orderId + ", StartDate: " + startDateStr);
 
                         if (orderId == null || startDateStr == null) {
-                            System.out.println("Skipping order " + orderId + " due to null data");
                             continue;
                         }
 
@@ -358,7 +355,6 @@ public class EmployeeController {
                         try {
                             startDate = LocalDate.parse(startDateStr);
                         } catch (Exception e) {
-                            System.out.println("Date parse error for order " + orderId + ": " + e.getMessage());
                             continue;
                         }
 
@@ -369,18 +365,18 @@ public class EmployeeController {
                                 "Company Name", "company_name");
 
                         for (ProcessStep step : config.getProcessDetails()) {
-                            // System.out.println("Step: " + step.getStepProcess() + ", Responsible: " +
-                            // step.getResponsiblePerson());
                             // Check if step is assigned to current user
                             if (step.getResponsiblePerson() != null
                                     && step.getResponsiblePerson().trim().equalsIgnoreCase(username.trim())) {
-                                System.out.println("MATCH FOUND for order " + orderId);
+
                                 Map<String, String> taskMap = new LinkedHashMap<>();
                                 taskMap.put("sr", String.valueOf(taskSr++));
                                 taskMap.put("orderId", orderId);
                                 taskMap.put("customerName", customerName);
                                 taskMap.put("companyName", companyName);
-                                taskMap.put("taskName", step.getStepProcess()); // Step Name
+                                taskMap.put("responsiblePerson", step.getResponsiblePerson());
+                                String stepName = step.getStepProcess();
+                                taskMap.put("taskName", stepName);
 
                                 // Calculate Target Date
                                 if (step.getDays() != null) {
@@ -389,14 +385,13 @@ public class EmployeeController {
                                     taskMap.put("targetDate", "-");
                                 }
 
-                                // Check status (if tracked separately, otherwise default)
+                                // Check status
                                 String status = step.getStatus();
                                 if (status == null || status.isBlank()) {
                                     status = "Pending";
                                 }
                                 taskMap.put("status", status);
-
-                                taskMap.put("pdf", ""); // Placeholder for PDF link
+                                taskMap.put("pdf", "");
 
                                 // Categorize
                                 boolean isOverdue = false;
@@ -415,7 +410,9 @@ public class EmployeeController {
                                 } else if (isOverdue) {
                                     fmsOverdueTasks.add(taskMap);
                                 } else {
-                                    fmsPendingTasks.add(taskMap);
+                                    // Add to Grouped Map
+                                    fmsPendingTasksByStep.computeIfAbsent(stepName, k -> new ArrayList<>())
+                                            .add(taskMap);
                                 }
                             }
                         }
@@ -428,7 +425,45 @@ public class EmployeeController {
 
             model.addAttribute("fmsOverdueTasks", fmsOverdueTasks);
             model.addAttribute("fmsCompletedTasks", fmsCompletedTasks);
-            model.addAttribute("fmsPendingTasks", fmsPendingTasks);
+            model.addAttribute("fmsPendingTasksByStep", fmsPendingTasksByStep);
+
+            // --- TEMP DEBUG: INJECT MOCK DATA IF EMPTY ---
+            if (fmsOverdueTasks.isEmpty()) {
+                Map<String, String> mockOverdue = new LinkedHashMap<>();
+                mockOverdue.put("sr", "1");
+                mockOverdue.put("orderId", "MOCK-OVER");
+                mockOverdue.put("customerName", "Test Client");
+                mockOverdue.put("taskName", "Step 1 Mock (Debug)");
+                mockOverdue.put("targetDate", "2025-01-01");
+                mockOverdue.put("status", "Pending");
+                fmsOverdueTasks.add(mockOverdue);
+            }
+            if (fmsPendingTasksByStep.isEmpty()) {
+                // Mock Step 1
+                List<Map<String, String>> step1List = new ArrayList<>();
+                Map<String, String> m1 = new LinkedHashMap<>();
+                m1.put("sr", "1");
+                m1.put("orderId", "ORD-100");
+                m1.put("customerName", "Alpha Corp");
+                m1.put("taskName", "Step 1: Design");
+                m1.put("targetDate", "2030-01-01");
+                m1.put("status", "Pending");
+                step1List.add(m1);
+                fmsPendingTasksByStep.put("Step 1: Design", step1List);
+
+                // Mock Step 2
+                List<Map<String, String>> step2List = new ArrayList<>();
+                Map<String, String> m2 = new LinkedHashMap<>();
+                m2.put("sr", "1");
+                m2.put("orderId", "ORD-101");
+                m2.put("customerName", "Beta Inc");
+                m2.put("taskName", "Step 7: QC");
+                m2.put("targetDate", "2030-01-05");
+                m2.put("status", "Pending");
+                step2List.add(m2);
+                fmsPendingTasksByStep.put("Step 7: QC", step2List);
+            }
+            // ---------------------------------------------
         }
 
         return "employee-fms-folder";
