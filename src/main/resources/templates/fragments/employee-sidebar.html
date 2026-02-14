@@ -423,24 +423,10 @@
             </div>
 
             <nav class="sidebar-nav">
-                <div class="nav-section"
-                    th:if="${permissions != null and (permissions.contains('ORDER_ENTRY') or permissions.contains('TASK_MANAGER'))}">
-                    <div class="nav-section-title">Assignment Modules</div>
+                <div class="nav-section" th:if="${permissions != null and permissions.contains('TASK_MANAGER')}">
+                    <div class="nav-section-title">Task Manager</div>
                     <ul class="nav-list">
-                        <li th:if="${permissions.contains('ORDER_ENTRY')}">
-                            <a th:href="@{/employee/order-entry}" class="nav-item" data-page="order-entry">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path
-                                        d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
-                                    <rect x="9" y="3" width="6" height="4" rx="1" />
-                                    <path d="M9 12h6" />
-                                    <path d="M9 16h6" />
-                                </svg>
-                                <span class="nav-text">Order Entry</span>
-                            </a>
-                        </li>
-                        <li th:if="${permissions.contains('TASK_MANAGER')}">
+                        <li>
                             <a th:href="@{/employee/task-manager}" class="nav-item" data-page="task-manager">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
@@ -456,7 +442,18 @@
                 <th:block th:with="hasFms=${fmsFolders != null and !fmsFolders.isEmpty()}">
                     <div class="nav-section" th:if="${hasFms}">
                         <div class="nav-section-title">FMS Modules</div>
-                        <ul class="nav-list">
+                        <button type="button" class="nav-item has-submenu" onclick="toggleSubmenu(this)">
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M3 7h5l2 2h11v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
+                            </svg>
+                            <span class="nav-text">FMS Modules</span>
+                            <svg class="submenu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M9 18l6-6-6-6" />
+                            </svg>
+                        </button>
+                        <ul class="submenu">
                             <li th:each="folder : ${fmsFolders}">
                                 <a th:href="@{/employee/fms/{folderId}(folderId=${folder.id})}" class="nav-item"
                                     th:data-page="|fms/${folder.id}|">
@@ -471,6 +468,25 @@
                         </ul>
                     </div>
                 </th:block>
+
+                <div class="nav-section" th:if="${permissions != null and permissions.contains('ORDER_ENTRY')}">
+                    <div class="nav-section-title">Order Entry</div>
+                    <ul class="nav-list">
+                        <li>
+                            <a th:href="@{/employee/order-entry}" class="nav-item" data-page="order-entry">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                                    <rect x="9" y="3" width="6" height="4" rx="1" />
+                                    <path d="M9 12h6" />
+                                    <path d="M9 16h6" />
+                                </svg>
+                                <span class="nav-text">Order Entry</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
 
                 <th:block
                     th:with="hasAny=${permissions != null and (permissions.contains('ORDER_ENTRY') or permissions.contains('TASK_MANAGER') or permissions.contains('FMS:folder1') or permissions.contains('FMS:folder2'))}">
@@ -564,6 +580,15 @@
                 document.querySelectorAll('.nav-item[data-page]').forEach(function (item) {
                     if (currentPath.includes(item.getAttribute('data-page'))) {
                         item.classList.add('active');
+                    }
+                });
+
+                document.querySelectorAll('.submenu').forEach(function (submenu) {
+                    const hasActiveChild = submenu.querySelector('.nav-item.active');
+                    if (hasActiveChild) {
+                        submenu.classList.add('show');
+                        const parentToggle = submenu.parentElement.querySelector('.has-submenu');
+                        if (parentToggle) parentToggle.classList.add('expanded');
                     }
                 });
             });

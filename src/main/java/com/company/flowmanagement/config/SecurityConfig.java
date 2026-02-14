@@ -30,9 +30,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login").permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/img/**", "/static/**").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/order/**").hasRole("ORDER")
+                        .requestMatchers("/css/**", "/js/**", "/img/**", "/static/**", "/uploads/**").permitAll()
+                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPERADMIN")
+                        .requestMatchers("/superadmin/**").hasRole("SUPERADMIN")
+
                         .requestMatchers("/employee/**").hasRole("EMPLOYEE")
                         .anyRequest().authenticated())
                 .formLogin(form -> form
@@ -55,12 +56,13 @@ public class SecurityConfig {
     public AuthenticationSuccessHandler authenticationSuccessHandler() {
         return (request, response, authentication) -> {
             var authorities = authentication.getAuthorities();
-            String targetUrl = "/home";
+            String targetUrl = "/employee/task-manager";
 
-            if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_SUPERADMIN"))) {
+                targetUrl = "/superadmin/dashboard";
+            } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
                 targetUrl = "/admin/dashboard";
-            } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_ORDER"))) {
-                targetUrl = "/order/dashboard";
+
             } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_EMPLOYEE"))) {
                 // Dynamic redirect based on permissions
                 String username = authentication.getName();

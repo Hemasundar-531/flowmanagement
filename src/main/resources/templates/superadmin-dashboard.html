@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Super Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f3f7fb;
+            --panel: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --line: #dbe7f3;
+            --primary: #0f6fff;
+            --primary-dark: #0b57ca;
+            --accent: #0f766e;
+            --danger: #dc2626;
+            --glow: rgba(15, 111, 255, 0.25);
+            --shadow: 0 18px 40px rgba(11, 27, 44, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text);
+            font-family: "Manrope", sans-serif;
+            background:
+                radial-gradient(circle at 90% 0%, #d7ebff 0%, transparent 38%),
+                radial-gradient(circle at 5% 22%, #d9fff2 0%, transparent 34%),
+                linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+        }
+
+        .dashboard-shell {
+            max-width: 1240px;
+            margin: 36px auto 48px;
+            padding: 0 22px;
+        }
+
+        .hero {
+            background: linear-gradient(120deg, #092247 0%, #0b3d7f 52%, #0d5bcc 100%);
+            color: #fff;
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            animation: fadeUp .55s ease;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: -30% -15% auto auto;
+            width: 300px;
+            height: 300px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0) 72%);
+        }
+
+        .hero-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-start;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            margin: 0;
+            font-family: "Sora", sans-serif;
+            font-weight: 700;
+            font-size: clamp(1.6rem, 2.6vw, 2.35rem);
+            letter-spacing: .2px;
+        }
+
+        .hero-sub {
+            margin-top: 8px;
+            color: rgba(255, 255, 255, .84);
+            font-size: .97rem;
+            max-width: 720px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .hero-btn {
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: .9rem;
+            padding: 11px 16px;
+            transition: .2s ease;
+        }
+
+        .hero-btn-primary {
+            color: #08306c;
+            background: linear-gradient(135deg, #e9f4ff 0%, #ffffff 100%);
+        }
+
+        .hero-btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(10, 36, 80, .24);
+        }
+
+        .hero-btn-alt {
+            color: #fff;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0b67df 100%);
+        }
+
+        .hero-btn-alt:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(5, 83, 193, .4);
+        }
+
+        .hero-btn-logout {
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, .45);
+            background: rgba(220, 38, 38, .2);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .hero-btn-logout:hover {
+            color: #fff;
+            background: rgba(220, 38, 38, .36);
+        }
+
+        .hero-stats {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-card {
+            border-radius: 14px;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, .12);
+            border: 1px solid rgba(255, 255, 255, .2);
+            backdrop-filter: blur(5px);
+        }
+
+        .stat-label {
+            font-size: .76rem;
+            text-transform: uppercase;
+            letter-spacing: .95px;
+            color: rgba(255, 255, 255, .8);
+        }
+
+        .stat-value {
+            margin-top: 3px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            font-family: "Sora", sans-serif;
+            line-height: 1.2;
+        }
+
+        .content-grid {
+            margin-top: 22px;
+            display: grid;
+            grid-template-columns: 1.1fr .9fr;
+            gap: 20px;
+        }
+
+        .panel {
+            border-radius: 18px;
+            background: var(--panel);
+            box-shadow: var(--shadow);
+            border: 1px solid #e4edf7;
+            padding: 20px;
+            animation: fadeUp .6s ease both;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .panel-title {
+            margin: 0;
+            font-family: "Sora", sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .panel-subtitle {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: .86rem;
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 13px;
+        }
+
+        .admin-card {
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, #fff, #f8fbff);
+            padding: 14px;
+            display: flex;
+            gap: 12px;
+            transition: .2s ease;
+        }
+
+        .admin-card:hover {
+            transform: translateY(-2px);
+            border-color: #bfd9f7;
+            box-shadow: 0 12px 24px rgba(14, 64, 123, 0.1);
+        }
+
+        .admin-logo {
+            width: 58px;
+            height: 58px;
+            border-radius: 14px;
+            object-fit: cover;
+            border: 1px solid #d6e8fa;
+            background: #f8fbff;
+            flex-shrink: 0;
+        }
+
+        .admin-name {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        .admin-meta {
+            margin: 3px 0 0;
+            color: var(--muted);
+            font-size: .84rem;
+        }
+
+        .admin-email {
+            margin-top: 3px;
+            display: inline-block;
+            font-size: .85rem;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .flow-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 580px;
+            overflow: auto;
+            padding-right: 4px;
+        }
+
+        .flow-item {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 13px;
+            background: linear-gradient(180deg, #ffffff 0%, #f9fcff 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            transition: .2s ease;
+        }
+
+        .flow-item:hover {
+            border-color: #bdd8f7;
+            box-shadow: 0 10px 20px rgba(11, 41, 84, .08);
+        }
+
+        .flow-title {
+            margin: 0;
+            font-size: .98rem;
+            font-weight: 700;
+        }
+
+        .flow-sub {
+            margin-top: 2px;
+            color: var(--muted);
+            font-size: .8rem;
+        }
+
+        .assign-btn {
+            border: 1px solid #b5ccf0;
+            color: #0c4d9b;
+            background: #eaf3ff;
+            border-radius: 10px;
+            padding: 8px 11px;
+            font-size: .8rem;
+            font-weight: 700;
+            transition: .2s ease;
+            white-space: nowrap;
+        }
+
+        .assign-btn:hover {
+            background: #d9eaff;
+            border-color: #87afe8;
+        }
+
+        .empty-note {
+            border: 1px dashed #c9dced;
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+            color: var(--muted);
+            background: #f7fbff;
+            font-size: .88rem;
+        }
+
+        .modal-content {
+            border-radius: 18px;
+            border: 1px solid #d6e6f5;
+            box-shadow: 0 20px 50px rgba(6, 29, 58, 0.2);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #e0ebf6;
+        }
+
+        .modal-title {
+            font-family: "Sora", sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .form-label {
+            font-weight: 700;
+            font-size: .87rem;
+            color: #334155;
+        }
+
+        .form-control {
+            border: 1px solid #c8daee;
+            border-radius: 11px;
+            font-size: .93rem;
+            padding: .63rem .82rem;
+        }
+
+        .form-control:focus {
+            border-color: #6fa6eb;
+            box-shadow: 0 0 0 .2rem var(--glow);
+        }
+
+        .stagger-1 {
+            animation-delay: .06s;
+        }
+
+        .stagger-2 {
+            animation-delay: .12s;
+        }
+
+        .stagger-3 {
+            animation-delay: .18s;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1100px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .flow-list {
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .dashboard-shell {
+                margin-top: 16px;
+                padding: 0 12px 24px;
+            }
+
+            .hero {
+                border-radius: 16px;
+                padding: 18px;
+            }
+
+            .hero-top {
+                flex-direction: column;
+            }
+
+            .hero-actions {
+                justify-content: flex-start;
+                width: 100%;
+            }
+
+            .hero-actions .hero-btn {
+                width: 100%;
+                text-align: center;
+                justify-content: center;
+            }
+
+            .hero-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .panel {
+                border-radius: 14px;
+                padding: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-shell">
+        <div class="hero">
+            <div class="hero-top">
+                <div>
+                    <h1>Super Admin Dashboard</h1>
+                    <p class="hero-sub">Create and allocate FMS flows centrally, then allow each admin to manage only
+                        assigned order details and process configurations.</p>
+                </div>
+                <div class="hero-actions">
+                    <button class="hero-btn hero-btn-primary" data-bs-toggle="modal" data-bs-target="#createFlowModal">
+                        Create a New FMS
+                    </button>
+                    <button class="hero-btn hero-btn-alt" data-bs-toggle="modal" data-bs-target="#createAdminModal">
+                        + Create Admin
+                    </button>
+                    <a href="/logout" class="hero-btn hero-btn-logout">Logout</a>
+                </div>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-card">
+                    <div class="stat-label">Total Admins</div>
+                    <div class="stat-value" th:text="${#lists.size(admins)}">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Flows</div>
+                    <div class="stat-value" th:text="${#lists.size(folders)}">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Control Plane</div>
+                    <div class="stat-value">Active</div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <section class="content-grid">
+            <article class="panel stagger-1">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">Existing Admins</h2>
+                        <p class="panel-subtitle">Organizations and accounts configured by superadmin</p>
+                    </div>
+                </div>
+                <div class="admin-grid" th:if="${!#lists.isEmpty(admins)}">
+                    <div class="admin-card" th:each="admin : ${admins}">
+                        <img th:if="${admin.companyLogo != null}" th:src="${admin.companyLogo}" class="admin-logo"
+                            alt="Logo">
+                        <img th:unless="${admin.companyLogo != null}" src="https://via.placeholder.com/60"
+                            class="admin-logo" alt="Logo">
+                        <div>
+                            <h3 class="admin-name" th:text="${admin.companyName}">Company Name</h3>
+                            <p class="admin-meta" th:text="${admin.customerName}">Customer Name</p>
+                            <a href="#" class="admin-email" th:text="${admin.email}">email@example.com</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="empty-note" th:if="${#lists.isEmpty(admins)}">
+                    No admins created yet.
+                </div>
+            </article>
+
+            <article class="panel stagger-2">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">Flow Assignment</h2>
+                        <p class="panel-subtitle">Map each FMS flow to one or more admins</p>
+                    </div>
+                </div>
+                <div class="flow-list" th:if="${!#lists.isEmpty(folders)}">
+                    <div class="flow-item" th:each="folder : ${folders}">
+                        <div>
+                            <h3 class="flow-title" th:text="${folder.name}">Flow Name</h3>
+                            <div class="flow-sub">Admin access can be changed anytime</div>
+                        </div>
+                        <button type="button" class="assign-btn"
+                            th:attr="data-folder-id=${folder.id},data-folder-name=${folder.name}"
+                            onclick="openAssignModal(this)">
+                            Assign Admins
+                        </button>
+                    </div>
+                </div>
+                <div class="empty-note" th:if="${#lists.isEmpty(folders)}">
+                    No flows created yet. Click Create a New FMS to add one.
+                </div>
+            </article>
+        </section>
+    </div>
+
+    <div class="modal fade" id="createAdminModal" tabindex="-1" aria-labelledby="createAdminModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createAdminModalLabel">Create New Admin</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/superadmin/create-admin" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="companyName" class="form-label">Company Name</label>
+                            <input type="text" class="form-control" id="companyName" name="companyName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="customerName" class="form-label">Customer Name</label>
+                            <input type="text" class="form-control" id="customerName" name="customerName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="companyLogo" class="form-label">Company Logo</label>
+                            <input type="file" class="form-control" id="companyLogo" name="companyLogo"
+                                accept="image/*">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email (Username)</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Create Admin</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="createFlowModal" tabindex="-1" aria-labelledby="createFlowModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createFlowModalLabel">Create New Flow</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="createFlowError" class="alert alert-danger d-none" role="alert"></div>
+                    <form id="createFlowForm">
+                        <div class="mb-3">
+                            <label for="flowName" class="form-label">Flow Name</label>
+                            <input type="text" class="form-control" id="flowName" name="name"
+                                placeholder="Enter flow name" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" id="createFlowBtn" class="btn btn-primary">Create Flow</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="assignFlowModal" tabindex="-1" aria-labelledby="assignFlowModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="assignFlowModalLabel">Assign Admins</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-2">Flow: <span id="assignFlowName">-</span></p>
+                    <div id="assignFlowError" class="alert alert-danger d-none" role="alert"></div>
+                    <div id="assignAdminList" class="border rounded p-2" style="max-height: 280px; overflow:auto;">
+                        Loading...
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveAssignBtn" onclick="saveFlowAccess()">Save
+                        Assignment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentFlowId = null;
+        const createFlowModalEl = document.getElementById('createFlowModal');
+        const assignFlowModalEl = document.getElementById('assignFlowModal');
+        const createFlowModal = createFlowModalEl ? new bootstrap.Modal(createFlowModalEl) : null;
+        const assignFlowModal = assignFlowModalEl ? new bootstrap.Modal(assignFlowModalEl) : null;
+
+        document.getElementById('createFlowForm')?.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const input = document.getElementById('flowName');
+            const btn = document.getElementById('createFlowBtn');
+            const err = document.getElementById('createFlowError');
+            const name = (input?.value || '').trim();
+
+            if (err) {
+                err.classList.add('d-none');
+                err.textContent = '';
+            }
+            if (!name) {
+                if (err) {
+                    err.textContent = 'Flow name is required.';
+                    err.classList.remove('d-none');
+                }
+                return;
+            }
+
+            if (btn) btn.disabled = true;
+            try {
+                const res = await fetch('/admin/api/fms', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    if (err) {
+                        err.textContent = data.error || 'Failed to create flow.';
+                        err.classList.remove('d-none');
+                    }
+                    return;
+                }
+                if (createFlowModal) createFlowModal.hide();
+                window.location.reload();
+            } catch (ex) {
+                if (err) {
+                    err.textContent = 'Network error while creating flow.';
+                    err.classList.remove('d-none');
+                }
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        });
+
+        async function openAssignModal(button) {
+            const folderId = button.getAttribute('data-folder-id');
+            const folderName = button.getAttribute('data-folder-name');
+            currentFlowId = folderId;
+            document.getElementById('assignFlowName').textContent = folderName || '-';
+            const list = document.getElementById('assignAdminList');
+            const err = document.getElementById('assignFlowError');
+            if (err) {
+                err.classList.add('d-none');
+                err.textContent = '';
+            }
+            if (list) {
+                list.innerHTML = 'Loading...';
+            }
+            if (assignFlowModal) assignFlowModal.show();
+
+            try {
+                const res = await fetch('/superadmin/api/folder-access?folderId=' + encodeURIComponent(folderId));
+                if (!res.ok) throw new Error('Failed to load admin access');
+                const admins = await res.json();
+                if (!list) return;
+                if (!admins.length) {
+                    list.innerHTML = '<span class="text-muted">No admins found.</span>';
+                    return;
+                }
+                list.innerHTML = admins.map((admin) => {
+                    const uname = admin.username || '';
+                    const email = admin.email || '';
+                    const checked = admin.hasAccess ? 'checked' : '';
+                    return `
+                        <div class="form-check mb-2">
+                            <input class="form-check-input admin-access-check" type="checkbox" value="${uname}" id="admin_${uname}" ${checked}>
+                            <label class="form-check-label" for="admin_${uname}">
+                                ${uname} <span class="text-muted">(${email || 'no-email'})</span>
+                            </label>
+                        </div>
+                    `;
+                }).join('');
+            } catch (ex) {
+                if (list) list.innerHTML = '<span class="text-danger">Error loading admins.</span>';
+            }
+        }
+
+        async function saveFlowAccess() {
+            if (!currentFlowId) return;
+            const btn = document.getElementById('saveAssignBtn');
+            const err = document.getElementById('assignFlowError');
+            if (err) {
+                err.classList.add('d-none');
+                err.textContent = '';
+            }
+
+            const checks = document.querySelectorAll('.admin-access-check');
+            const access = {};
+            checks.forEach((cb) => {
+                access[cb.value] = cb.checked;
+            });
+
+            if (btn) btn.disabled = true;
+            try {
+                const res = await fetch('/superadmin/api/folder-access', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ folderId: currentFlowId, access })
+                });
+                if (!res.ok) throw new Error('Save failed');
+                if (assignFlowModal) assignFlowModal.hide();
+            } catch (ex) {
+                if (err) {
+                    err.textContent = 'Failed to save assignment.';
+                    err.classList.remove('d-none');
+                }
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+
+</html>

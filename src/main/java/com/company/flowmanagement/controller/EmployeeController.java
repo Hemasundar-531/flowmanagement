@@ -164,6 +164,8 @@ public class EmployeeController {
                     }
                 }
                 row.put("values", values);
+                row.put("customerName", findFieldValue(entry.getFields(), "Customer Name", "customer_name"));
+                row.put("companyName", findFieldValue(entry.getFields(), "Company Name", "company_name"));
                 String planningStatus = findFieldValue(entry.getFields(), "Planning Status", "planning_status");
                 if (planningStatus == null || planningStatus.isBlank() || "-".equals(planningStatus)) {
                     planningStatus = "Pending";

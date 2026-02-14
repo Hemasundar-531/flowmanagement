@@ -5,6 +5,7 @@ import com.company.flowmanagement.repository.O2DConfigRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +24,15 @@ public class FmsApiController {
      * Create a new FMS folder. Name must be unique (case-insensitive).
      */
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> create(@RequestBody Map<String, String> body, Authentication authentication) {
+        boolean isSuperAdmin = authentication != null
+                && authentication.getAuthorities().stream()
+                        .anyMatch(a -> "ROLE_SUPERADMIN".equals(a.getAuthority()));
+        if (!isSuperAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(errorBody("Only superadmin can create flows."));
+        }
+
         String name = body != null ? body.get("name") : null;
         String trimmed = name == null ? "" : name.trim();
 

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.security.core.Authentication;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +31,8 @@ public class O2DConfigController {
     }
 
     @GetMapping("/fms-list")
-    public String listFolders(Model model) {
-        model.addAttribute("folders", repository.findAll());
+    public String listFolders(Model model, Authentication authentication) {
+        model.addAttribute("folders", getAccessibleFolders(authentication));
         return "fms-list";
     }
 
@@ -45,7 +46,13 @@ public class O2DConfigController {
             @RequestParam(value = "quantity", required = false) Integer quantity,
             @RequestParam(value = "cdd", required = false) String cdd,
             @RequestParam(value = "mpd", required = false) String mpd,
-            @RequestParam(value = "startDate", required = false) String startDate) {
+            @RequestParam(value = "startDate", required = false) String startDate,
+            Authentication authentication) {
+        User currentUser = authentication == null ? null : userRepository.findByUsername(authentication.getName());
+        if (currentUser == null || !"SUPERADMIN".equals(currentUser.getRole())) {
+            return "redirect:/admin/fms-list";
+        }
+
         String trimmed = name == null ? "" : name.trim();
         if (trimmed.isEmpty()) {
             return "redirect:/admin/fms-list";
@@ -70,7 +77,12 @@ public class O2DConfigController {
     @GetMapping("/fms-process")
     public String viewO2D(@RequestParam("folderId") String folderId,
             @RequestParam(name = "edit", required = false, defaultValue = "false") boolean edit,
-            Model model) {
+            Model model,
+            Authentication authentication) {
+        if (!canAccessFolder(authentication, folderId)) {
+            return "redirect:/admin/fms-list";
+        }
+
         O2DConfig config = repository.findById(folderId).orElse(null);
         if (config == null) {
             return "redirect:/admin/fms-list";
@@ -93,7 +105,12 @@ public class O2DConfigController {
             @RequestParam("folderId") String folderId,
             @RequestParam(name = "orderDetails", required = false) List<String> orderDetails,
             Model model,
-            HttpSession session) {
+            HttpSession session,
+            Authentication authentication) {
+        if (!canAccessFolder(authentication, folderId)) {
+            return "redirect:/admin/fms-list";
+        }
+
         ArrayList<String> cleanedOrderDetails = cleanOrderDetails(orderDetails);
         session.setAttribute("orderDetailsDraft", cleanedOrderDetails);
         session.setAttribute("folderIdDraft", folderId);
@@ -105,7 +122,12 @@ public class O2DConfigController {
     public String viewProcessSteps(@RequestParam("folderId") String folderId,
             @RequestParam(name = "edit", required = false, defaultValue = "false") boolean edit,
             HttpSession session,
-            Model model) {
+            Model model,
+            Authentication authentication) {
+        if (!canAccessFolder(authentication, folderId)) {
+            return "redirect:/admin/fms-list";
+        }
+
         O2DConfig config = repository.findById(folderId).orElse(null);
         if (config == null) {
             return "redirect:/admin/fms-list";
@@ -140,7 +162,12 @@ public class O2DConfigController {
             @RequestParam(name = "responsiblePerson", required = false) List<String> responsiblePerson,
             @RequestParam(name = "targetType", required = false) List<String> targetType,
             @RequestParam(name = "days", required = false) List<String> days,
-            HttpSession session) {
+            HttpSession session,
+            Authentication authentication) {
+        if (!canAccessFolder(authentication, folderId)) {
+            return "redirect:/admin/fms-list";
+        }
+
         ArrayList<String> cleanedOrderDetails = new ArrayList<>();
         Object draftId = session.getAttribute("folderIdDraft");
         if (folderId.equals(draftId)) {
@@ -189,7 +216,12 @@ public class O2DConfigController {
     }
 
     @PostMapping("/fms-list/delete")
-    public String deleteFolder(@RequestParam("id") String id) {
+    public String deleteFolder(@RequestParam("id") String id, Authentication authentication) {
+        User currentUser = authentication == null ? null : userRepository.findByUsername(authentication.getName());
+        if (currentUser == null || !"SUPERADMIN".equals(currentUser.getRole())) {
+            return "redirect:/admin/fms-list";
+        }
+
         if (id != null && !id.isBlank()) {
             repository.deleteById(id);
         }
@@ -230,5 +262,116 @@ public class O2DConfigController {
 
     private String safeTrim(String value) {
         return value == null ? null : value.trim();
+    }
+
+    // --- MANAGE ACCESS APIS ---
+
+    @GetMapping("/api/folder-access")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public java.util.List<java.util.Map<String, Object>> getFolderAccess(@RequestParam("folderId") String folderId) {
+        List<User> employees = userRepository.findByRole("EMPLOYEE");
+        List<java.util.Map<String, Object>> result = new ArrayList<>();
+
+        for (User emp : employees) {
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("username", emp.getUsername());
+            map.put("role", emp.getRole());
+
+            boolean hasAccess = false;
+            if (emp.getPermissions() != null) {
+                // Check for explicit FMS folder permission
+                hasAccess = emp.getPermissions().contains("FMS:" + folderId);
+            }
+            map.put("hasAccess", hasAccess);
+            result.add(map);
+        }
+        return result;
+    }
+
+    @PostMapping("/api/folder-access")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public org.springframework.http.ResponseEntity<?> saveFolderAccess(
+            @org.springframework.web.bind.annotation.RequestBody java.util.Map<String, Object> body) {
+        String folderId = (String) body.get("folderId");
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Boolean> accessMap = (java.util.Map<String, Boolean>) body.get("access");
+
+        if (folderId == null || accessMap == null) {
+            return org.springframework.http.ResponseEntity.badRequest().build();
+        }
+
+        accessMap.forEach((username, shouldHaveAccess) -> {
+            User emp = userRepository.findByUsername(username);
+            if (emp != null) {
+                ArrayList<String> perms = emp.getPermissions();
+                if (perms == null)
+                    perms = new ArrayList<>();
+
+                String permString = "FMS:" + folderId;
+
+                if (shouldHaveAccess) {
+                    if (!perms.contains(permString)) {
+                        perms.add(permString);
+                    }
+                } else {
+                    perms.remove(permString);
+                }
+
+                emp.setPermissions(perms);
+                userRepository.save(emp);
+            }
+        });
+
+        return org.springframework.http.ResponseEntity.ok().build();
+    }
+
+    private List<O2DConfig> getAccessibleFolders(Authentication authentication) {
+        if (authentication == null) {
+            return new ArrayList<>();
+        }
+
+        User currentUser = userRepository.findByUsername(authentication.getName());
+        if (currentUser == null) {
+            return new ArrayList<>();
+        }
+
+        if ("SUPERADMIN".equals(currentUser.getRole())) {
+            return repository.findAll();
+        }
+
+        if (!"ADMIN".equals(currentUser.getRole())) {
+            return new ArrayList<>();
+        }
+
+        List<O2DConfig> all = repository.findAll();
+        List<O2DConfig> filtered = new ArrayList<>();
+        for (O2DConfig folder : all) {
+            if (canAccessFolder(authentication, folder.getId())) {
+                filtered.add(folder);
+            }
+        }
+        return filtered;
+    }
+
+    private boolean canAccessFolder(Authentication authentication, String folderId) {
+        if (authentication == null || folderId == null || folderId.isBlank()) {
+            return false;
+        }
+
+        User currentUser = userRepository.findByUsername(authentication.getName());
+        if (currentUser == null) {
+            return false;
+        }
+
+        if ("SUPERADMIN".equals(currentUser.getRole())) {
+            return true;
+        }
+
+        if (!"ADMIN".equals(currentUser.getRole())) {
+            return false;
+        }
+
+        List<String> perms = currentUser.getPermissions();
+        return perms != null && perms.contains("ADMIN_FMS:" + folderId);
     }
 }

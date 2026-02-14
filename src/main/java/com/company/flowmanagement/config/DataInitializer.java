@@ -14,19 +14,24 @@ public class DataInitializer {
 
     @Bean
     public CommandLineRunner seedUsers(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                                       EmployeeRepository employeeRepository) {
+            EmployeeRepository employeeRepository) {
         return args -> {
             createIfMissing(userRepository, passwordEncoder, "admin", "ADMIN");
             createIfMissing(userRepository, passwordEncoder, "order", "ORDER");
+            createIfMissing(userRepository, passwordEncoder, "superadmin", "SUPERADMIN");
             createIfMissing(userRepository, passwordEncoder, "employee", "EMPLOYEE");
+            createIfMissing(userRepository, passwordEncoder, "E1", "EMPLOYEE");
+            createIfMissing(userRepository, passwordEncoder, "E2", "EMPLOYEE");
+            createIfMissing(userRepository, passwordEncoder, "E3", "EMPLOYEE");
             seedSampleEmployeeIfEmpty(employeeRepository, userRepository, passwordEncoder);
         };
     }
 
     private void seedSampleEmployeeIfEmpty(EmployeeRepository employeeRepository,
-                                            UserRepository userRepository,
-                                            PasswordEncoder passwordEncoder) {
-        if (employeeRepository.count() > 0) return;
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder) {
+        if (employeeRepository.count() > 0)
+            return;
         Employee e = new Employee();
         e.setName("Rahul");
         e.setDepartment("Production");
@@ -42,9 +47,14 @@ public class DataInitializer {
     }
 
     private void createIfMissing(UserRepository userRepository, PasswordEncoder encoder,
-                                 String username, String role) {
-        if (userRepository.findByUsername(username) != null) {
-            return;
+            String username, String role) {
+        try {
+            if (userRepository.findByUsername(username) != null) {
+                return;
+            }
+        } catch (org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+            // Found duplicates, delete them and recreate
+            userRepository.deleteByUsername(username);
         }
 
         User user = new User();

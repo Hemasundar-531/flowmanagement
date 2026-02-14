@@ -4,7 +4,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
-import java.util.List;
 
 @Document(collection = "users")
 public class User {
@@ -17,6 +16,12 @@ public class User {
     private String role; // ADMIN, ORDER, EMPLOYEE
 
     private ArrayList<String> permissions = new ArrayList<>();
+
+    // New fields for Admin creation
+    private String companyName;
+    private String customerName;
+    private String companyLogo; // Path to uploaded file
+    private String email;
 
     public String getId() {
         return id;
@@ -56,5 +61,37 @@ public class User {
 
     public void setPermissions(ArrayList<String> permissions) {
         this.permissions = permissions != null ? permissions : new ArrayList<>();
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public String getCompanyLogo() {
+        return companyLogo;
+    }
+
+    public void setCompanyLogo(String companyLogo) {
+        this.companyLogo = companyLogo;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

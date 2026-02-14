@@ -75,6 +75,7 @@
         .header .right {
             display: flex;
             gap: 10px;
+            align-items: center;
         }
 
         .header .right {
@@ -118,6 +119,27 @@
         .btn-ghost {
             background: #eef3fb;
             color: var(--primary-deep);
+        }
+
+        .folder-switch-form {
+            margin: 0;
+        }
+
+        .folder-select {
+            min-width: 180px;
+            border: 1px solid #c8d8ee;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #1d3f78;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 10px 12px;
+            outline: none;
+        }
+
+        .folder-select:focus {
+            border-color: #6ea3e8;
+            box-shadow: 0 0 0 3px rgba(31, 95, 191, 0.14);
         }
 
         .section {
@@ -307,8 +329,29 @@
 
         /* Planning Specifics */
         .planning-table thead th {
-            background: linear-gradient(90deg, #f1f6ff, #eef4ff);
-            color: #243855;
+            background: linear-gradient(90deg, #d9efff, #cfe8ff);
+            color: #0f3b66;
+            border-bottom: 1px solid #d4af37;
+        }
+
+        .planning-table {
+            border: 1px solid #d4af37;
+        }
+
+        .planning-table tbody tr {
+            background: #f1f9ff;
+        }
+
+        .planning-table tbody tr:nth-child(even) {
+            background: #e6f4ff;
+        }
+
+        .planning-table tbody tr:hover {
+            background: #d7ecff;
+        }
+
+        .planning-table tbody td {
+            border-bottom: 1px solid #f1df9b;
         }
 
         .planning-block {
@@ -520,6 +563,15 @@
                             </svg>
                             Production Planning
                         </button>
+                        <form class="folder-switch-form" method="get" th:action="@{/employee/order-entry}"
+                            th:if="${fmsFolders != null and !fmsFolders.isEmpty()}">
+                            <select class="folder-select" name="folderId" onchange="this.form.submit()">
+                                <option th:each="folder : ${fmsFolders}" th:value="${folder.id}"
+                                    th:text="${folder.name}" th:selected="${folder.id == selectedFolderId}">
+                                    FMS
+                                </option>
+                            </select>
+                        </form>
                     </div>
                     <div class="title">
                         <h1>Order Entry Dashboard</h1>
@@ -608,6 +660,28 @@
                                             </select>
                                         </form>
                                     </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-wrap order-entry-table" style="margin-top:16px;"
+                        th:if="${orderEntryRows != null and !orderEntryRows.isEmpty()}">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer Name</th>
+                                    <th>Company Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="row : ${orderEntryRows}">
+                                    <td>
+                                        <a th:href="@{/employee/order-entry(folderId=${selectedFolderId},entryId=${row['entryId']},planOrderId=${row['orderId']},openPlan='1')}"
+                                            th:text="${row['orderId']}">O2D-0000</a>
+                                    </td>
+                                    <td th:text="${row['customerName']}">-</td>
+                                    <td th:text="${row['companyName']}">-</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -718,7 +792,8 @@
                 <!-- Existing Plans -->
                 <div th:if="${planningBlocks != null and !planningBlocks.isEmpty()}">
                     <div th:each="plan, iter : ${planningBlocks}" style="margin-top:18px;">
-                        <button class="folder-btn" type="button" th:attr="data-target=${'plan-' + iter.index}"
+                        <button class="folder-btn" type="button"
+                            th:attr="data-target=${'plan-' + iter.index},data-order-id=${plan['orderId']}"
                             onclick="togglePlanBlock(this)">
                             <span class="left">
                                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -950,6 +1025,31 @@
             const saved = document.getElementById("savedFlag");
             if (saved && saved.value === "true") {
                 // Could show a toast here
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            const shouldOpenPlan = params.get("openPlan") === "1";
+            const targetOrderId = (params.get("planOrderId") || "").trim();
+
+            if (!shouldOpenPlan) {
+                return;
+            }
+
+            showPlanning();
+
+            if (!targetOrderId) {
+                return;
+            }
+
+            const targetBtn = Array.from(document.querySelectorAll(".folder-btn"))
+                .find(btn => (btn.getAttribute("data-order-id") || "").trim() === targetOrderId);
+
+            if (targetBtn) {
+                const targetId = targetBtn.getAttribute("data-target");
+                const targetBox = targetId ? document.getElementById(targetId) : null;
+                if (targetBox && targetBox.style.display !== "block") {
+                    togglePlanBlock(targetBtn);
+                }
             }
         });
     </script>

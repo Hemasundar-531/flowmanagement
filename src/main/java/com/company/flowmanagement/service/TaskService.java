@@ -95,7 +95,8 @@ public class TaskService {
                     if (!"-".equals(cName))
                         customerName = cName;
 
-                    String pName = findFieldValue(orderEntry.getFields(), "Company Name", "company_name");
+                    // String pName = findFieldValue(orderEntry.getFields(), "Company Name",
+                    // "company_name");
                     // You might prefer Company Name as Project Name? using Client Name as Client.
                     // Let's stick to Customer Name -> Client.
                 }
@@ -215,7 +216,7 @@ public class TaskService {
 
     // Get client-project map for a user
     public Map<String, List<Project>> getClientProjectMap(String username) {
-        User user = userRepository.findByUsername(username);
+        // User user = userRepository.findByUsername(username);
         // Look up db tasks plus FMS tasks to build this map dynamically if needed?
         // For now, keep existing logic (returns all projects)
         // OR better: return projects relevant to the user's tasks
