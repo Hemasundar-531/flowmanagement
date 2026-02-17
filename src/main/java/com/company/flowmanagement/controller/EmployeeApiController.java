@@ -32,17 +32,47 @@ public class EmployeeApiController {
     }
 
     @GetMapping
-    public ResponseEntity<?> list() {
-        List<Employee> employees = employeeRepository.findAllByOrderById();
-        // Also include all FMS folders for the UI
-        var folders = o2dConfigRepository.findAll();
+    public ResponseEntity<?> list(java.security.Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        com.company.flowmanagement.model.User admin = userRepository.findByUsername(principal.getName());
+        if (admin == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User not found");
+        }
+
+        // Filter employees by adminId
+        List<Employee> employees = employeeRepository.findByAdminId(admin.getId());
+
+        // Filter FMS folders by permissions (ADMIN_FMS:{id})
+        List<com.company.flowmanagement.model.O2DConfig> folders = new ArrayList<>();
+        List<String> perms = admin.getPermissions();
+        if (perms != null) {
+            List<String> folderIds = new ArrayList<>();
+            for (String perm : perms) {
+                if (perm.startsWith("ADMIN_FMS:")) {
+                    folderIds.add(perm.substring("ADMIN_FMS:".length()));
+                }
+            }
+            if (!folderIds.isEmpty()) {
+                folders = (List<com.company.flowmanagement.model.O2DConfig>) o2dConfigRepository.findAllById(folderIds);
+            }
+        }
+
         return ResponseEntity.ok(Map.of(
                 "employees", employees,
                 "fmsFolders", folders));
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Employee employee) {
+    public ResponseEntity<?> create(@RequestBody Employee employee, java.security.Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        com.company.flowmanagement.model.User admin = userRepository.findByUsername(principal.getName());
+        if (admin != null) {
+            employee.setAdminId(admin.getId());
+        }
         try {
             Employee saved = employeeService.createEmployee(employee);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);

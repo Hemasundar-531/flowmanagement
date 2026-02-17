@@ -57,13 +57,24 @@ public class EmployeeService {
             employee.setPermissions(new ArrayList<>());
         }
 
+        if (employee.getStatus() == null || employee.getStatus().isEmpty()) {
+            employee.setStatus("Active"); // Default status
+        }
+
         Employee saved = employeeRepository.save(employee);
 
         User user = new User();
         user.setUsername(name);
-        user.setPassword(passwordEncoder.encode(DEFAULT_EMPLOYEE_PASSWORD));
+        user.setEmail(employee.getEmail());
+
+        String rawPassword = (employee.getPassword() != null && !employee.getPassword().isEmpty())
+                ? employee.getPassword()
+                : DEFAULT_EMPLOYEE_PASSWORD;
+        user.setPassword(passwordEncoder.encode(rawPassword));
+
         user.setRole(DEFAULT_EMPLOYEE_ROLE);
         user.setPermissions(new ArrayList<>(employee.getPermissions())); // Copy permissions to User
+        user.setCompanyName(employee.getDepartment()); // Optional: map department or keep null
         userRepository.save(user);
 
         return saved;

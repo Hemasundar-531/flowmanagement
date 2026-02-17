@@ -64,24 +64,8 @@ public class SecurityConfig {
                 targetUrl = "/admin/dashboard";
 
             } else if (authorities.stream().anyMatch(a -> a.getAuthority().equals("ROLE_EMPLOYEE"))) {
-                // Dynamic redirect based on permissions
-                String username = authentication.getName();
-                com.company.flowmanagement.model.User user = userRepository.findByUsername(username);
-
-                targetUrl = "/employee/no-access"; // Default fallback
-
-                if (user != null && user.getPermissions() != null) {
-                    if (user.getPermissions().contains("ORDER_ENTRY")) {
-                        targetUrl = "/employee/order-entry";
-                    } else if (user.getPermissions().contains("TASK_MANAGER")) {
-                        targetUrl = "/employee/task-manager";
-                    } else if (user.getPermissions().contains("FMS:folder1")) { // Example check, could be more dynamic
-                        targetUrl = "/employee/fms";
-                    } else if (!user.getPermissions().isEmpty()) {
-                        // Fallback to FMS main if they have other permissions
-                        targetUrl = "/employee/fms";
-                    }
-                }
+                // Redirect all employees to the main dashboard
+                targetUrl = "/employee/dashboard";
             }
 
             response.sendRedirect(targetUrl);

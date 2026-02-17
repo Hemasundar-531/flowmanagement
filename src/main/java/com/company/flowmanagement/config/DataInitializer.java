@@ -23,7 +23,14 @@ public class DataInitializer {
             createIfMissing(userRepository, passwordEncoder, "E1", "EMPLOYEE");
             createIfMissing(userRepository, passwordEncoder, "E2", "EMPLOYEE");
             createIfMissing(userRepository, passwordEncoder, "E3", "EMPLOYEE");
+            createIfMissing(userRepository, passwordEncoder, "E3", "EMPLOYEE");
             seedSampleEmployeeIfEmpty(employeeRepository, userRepository, passwordEncoder);
+
+            // Ensure Employee documents exist for E1, E2, E3, and 'employee'
+            seedEmployeeIfMissing(employeeRepository, "employee", "General");
+            seedEmployeeIfMissing(employeeRepository, "E1", "General");
+            seedEmployeeIfMissing(employeeRepository, "E2", "General");
+            seedEmployeeIfMissing(employeeRepository, "E3", "General");
         };
     }
 
@@ -44,6 +51,18 @@ public class DataInitializer {
             user.setRole("EMPLOYEE");
             userRepository.save(user);
         }
+    }
+
+    private void seedEmployeeIfMissing(EmployeeRepository employeeRepository, String name, String department) {
+        if (employeeRepository.findByName(name).isPresent()) {
+            return;
+        }
+        Employee e = new Employee();
+        e.setName(name);
+        e.setDepartment(department);
+        e.setStatus("Active");
+        e.setPermissions(new java.util.ArrayList<>());
+        employeeRepository.save(e);
     }
 
     private void createIfMissing(UserRepository userRepository, PasswordEncoder encoder,

@@ -158,7 +158,7 @@
             box-shadow: var(--shadow);
             border: 1px solid #dde3ec;
             border-radius: 12px;
-            overflow: hidden;
+            /* overflow: hidden; Removed to allow dropdowns to show */
             transition: box-shadow 0.3s ease;
         }
 
@@ -377,7 +377,7 @@
             transform: translateX(-50%);
             margin-top: 4px;
             min-width: 220px;
-            max-width: 280px;
+            max-width: 320px;
             background: white;
             border: 1px solid #e2e8f0;
             border-radius: 10px;
@@ -385,15 +385,28 @@
             z-index: 100;
             padding: 10px 0;
             animation: fadeIn 0.2s ease;
-            max-height: 300px;
+            max-height: min(340px, 55vh);
             overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            scrollbar-gutter: stable;
+            scrollbar-width: thin;
+            scrollbar-color: #94a3b8 #f1f5f9;
         }
 
         .perm-dropdown.open-upward {
             top: auto;
             bottom: 100%;
-            margin-top: 0;
             margin-bottom: 4px;
+        }
+
+        .perm-section-title {
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .perm-dropdown.show {
@@ -465,6 +478,13 @@
             box-shadow: var(--shadow);
             z-index: 101;
             padding: 6px 0;
+            max-height: min(280px, 45vh);
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            scrollbar-gutter: stable;
+            scrollbar-width: thin;
+            scrollbar-color: #94a3b8 #f1f5f9;
         }
 
         .perm-fms-dropdown.show {
@@ -603,6 +623,8 @@
                         <tr>
                             <th>S.No</th>
                             <th>Employee Name</th>
+                            <th>Email</th>
+                            <th>Password</th>
                             <th>Department</th>
                             <th>Status</th>
                             <th>Permission</th>
@@ -619,38 +641,16 @@
                     <h3 id="modalTitle">Add Employee</h3>
                     <input type="hidden" id="empId" />
                     <input type="text" id="empName" placeholder="Employee Name">
+                    <input type="email" id="empEmail" placeholder="Email Address">
                     <input type="text" id="empDept" placeholder="Department">
-                    <select id="empStatus">
-                        <option value="">Select Status</option>
-                        <option value="Active">Active</option>
-                        <option value="Hold">Hold</option>
-                        <option value="Deleted">Deleted</option>
-                    </select>
+                    <input type="password" id="empPassword" placeholder="Password">
+                    <!-- Status removed, defaults to Active -->
 
-                    <div
-                        style="margin-top:16px; padding:12px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
-                        <div style="font-size:13px; font-weight:600; color:#334155; margin-bottom:10px;">Permissions
-                        </div>
-                        <div style="display:flex; flex-direction:column; gap:8px;">
-                            <label
-                                style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#475569;">
-                                <input type="checkbox" id="permOrderEntry" style="cursor:pointer;">
-                                Order Entry Person
-                            </label>
-                            <label
-                                style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:#475569;">
-                                <input type="checkbox" id="permTaskManager" style="cursor:pointer;">
-                                Task Manager
-                            </label>
-                            <div style="margin-top:4px;">
-                                <div style="font-size:12px; font-weight:600; color:#64748b; margin-bottom:6px;">FMS
-                                    Folders</div>
-                                <div id="fmsFoldersCheckboxes"
-                                    style="display:flex; flex-direction:column; gap:6px; padding-left:8px;">
-                                    <!-- FMS folder checkboxes will be loaded dynamically -->
-                                </div>
-                            </div>
-                        </div>
+                    <!-- Permissions section removed as per request -->
+                    <div style="display:none;">
+                        <input type="checkbox" id="permOrderEntry">
+                        <input type="checkbox" id="permTaskManager">
+                        <div id="fmsFoldersCheckboxes"></div>
                     </div>
 
                     <button class="save" onclick="saveEmployee()">
@@ -678,85 +678,25 @@
                     document.getElementById("modalTitle").textContent = "Add Employee";
                     document.getElementById("empId").value = "";
                     document.getElementById("empName").value = "";
+                    document.getElementById("empEmail").value = "";
                     document.getElementById("empDept").value = "";
-                    document.getElementById("empStatus").value = "";
+                    document.getElementById("empPassword").value = "";
+
+                    // Clear permissions
                     document.getElementById("permOrderEntry").checked = false;
                     document.getElementById("permTaskManager").checked = false;
-                    document.querySelectorAll('.fms-folder-checkbox').forEach(cb => cb.checked = false);
-                    document.getElementById("employeeModal").style.display = "block";
-                    hideMessage("employeeErrorMessage");
+                    const checkboxes = document.querySelectorAll("#fmsFoldersCheckboxes input[type='checkbox']");
+                    checkboxes.forEach(cb => cb.checked = false);
+
+                    document.getElementById("employeeModal").style.display = "flex";
                 }
 
                 function closeModal() {
                     document.getElementById("employeeModal").style.display = "none";
-                    document.getElementById("empName").value = "";
-                    document.getElementById("empDept").value = "";
-                    document.getElementById("empStatus").value = "";
                 }
 
-                function editEmployee(emp) {
-                    document.getElementById("modalTitle").textContent = "Edit Employee";
-                    document.getElementById("empId").value = emp.id || "";
-                    document.getElementById("empName").value = emp.name || "";
-                    document.getElementById("empDept").value = emp.department || "";
-                    document.getElementById("empStatus").value = emp.status || "";
+                // Old saveEmployee removed
 
-                    const perms = emp.permissions || [];
-                    document.getElementById("permOrderEntry").checked = perms.includes('ORDER_ENTRY');
-                    document.getElementById("permTaskManager").checked = perms.includes('TASK_MANAGER');
-
-                    document.querySelectorAll('.fms-folder-checkbox').forEach(cb => {
-                        const folderId = cb.getAttribute('data-folder-id');
-                        cb.checked = perms.includes('FMS:' + folderId);
-                    });
-
-                    document.getElementById("employeeModal").style.display = "block";
-                    hideMessage("employeeErrorMessage");
-                }
-
-                async function saveEmployee() {
-                    const empId = document.getElementById("empId").value;
-                    const isEdit = !!empId;
-
-                    const name = document.getElementById("empName").value.trim();
-                    const dept = document.getElementById("empDept").value.trim();
-                    const status = document.getElementById("empStatus").value;
-
-                    if (!name) { showErrorMessage("Employee name is required."); return; }
-                    if (!dept) { showErrorMessage("Department is required."); return; }
-                    if (!status) { showErrorMessage("Status is required."); return; }
-
-                    const permissions = [];
-                    if (document.getElementById("permOrderEntry").checked) permissions.push('ORDER_ENTRY');
-                    if (document.getElementById("permTaskManager").checked) permissions.push('TASK_MANAGER');
-                    document.querySelectorAll('.fms-folder-checkbox:checked').forEach(cb => {
-                        const folderId = cb.getAttribute('data-folder-id');
-                        if (folderId) permissions.push(`FMS:${folderId}`);
-                    });
-
-                    hideMessage("employeeErrorMessage");
-                    try {
-                        const url = isEdit ? `${API_BASE}/${empId}` : API_BASE;
-                        const method = isEdit ? 'PUT' : 'POST';
-                        const res = await fetch(url, {
-                            method: method,
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ name, department: dept, status, permissions })
-                        });
-                        const data = await res.json();
-                        if (res.ok) {
-                            closeModal();
-                            showSuccessMessage();
-                            // Always reload the table to ensure all data and handlers are properly set
-                            loadEmployees();
-                            return;
-                        }
-                        showErrorMessage(data.error || `Failed to ${isEdit ? 'update' : 'add'} employee.`);
-                    } catch (e) {
-                        console.error(e);
-                        showErrorMessage(`Failed to ${isEdit ? 'update' : 'add'} employee.`);
-                    }
-                }
 
                 function showSuccessMessage() {
                     var el = document.getElementById("employeeSuccessMessage");
@@ -821,97 +761,36 @@
                 function renderTable(employees) {
                     const tbody = document.getElementById("employeeTableBody");
                     if (!employees || employees.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;">No employees yet. Add one using the + button.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94a3b8;">No employees yet. Add one using the + button.</td></tr>';
                         return;
                     }
-                    tbody.innerHTML = employees.map((emp, idx) => {
-                        const perms = emp.permissions || [];
-                        const hasOrderEntry = perms.includes('ORDER_ENTRY');
-                        const hasTaskManager = perms.includes('TASK_MANAGER');
-                        const fmsFolderPerms = perms.filter(p => p.startsWith('FMS:'));
-
-                        // Build FMS folder checkboxes dynamically
-                        const fmsFolderHtml = allFmsFolders.map(folder => {
-                            const hasPerm = perms.includes(`FMS:${folder.id}`);
-                            return `
-                    <div class="perm-item">
-                        <input type="checkbox" id="fms-${folder.id}-${emp.id}" data-employee-id="${emp.id}" data-perm="FMS:${folder.id}" ${hasPerm ? 'checked' : ''} onchange="onPermissionChange(this)">
-                        <label for="fms-${folder.id}-${emp.id}">${escapeHtml(folder.name)}</label>
-                    </div>
-                `;
-                        }).join('');
-
-                        return `
-            <tr data-employee-id="${emp.id}">
-                <td>${idx + 1}</td>
-                <td>${escapeHtml(emp.name || '')}</td>
-                <td>${escapeHtml(emp.department || '')}</td>
-                <td>
-                    <select class="status-select" data-employee-id="${emp.id}" onchange="onStatusChange(this)">
-                        <option value="Active" ${(emp.status || '') === 'Active' ? 'selected' : ''}>Active</option>
-                        <option value="Hold" ${(emp.status || '') === 'Hold' ? 'selected' : ''}>Hold</option>
-                        <option value="Deleted" ${(emp.status || '') === 'Deleted' ? 'selected' : ''}>Deleted</option>
-                    </select>
-                </td>
-                <td class="permission-cell">
-                    <div class="perm-wrap">
-                        <button type="button" class="perm-trigger" onclick="togglePermDropdown(this)" aria-haspopup="true" aria-expanded="false">Permissions</button>
-                        <div class="perm-dropdown" onclick="event.stopPropagation()">
-                            <div class="perm-section-title">Basic Permissions</div>
-                            <div class="perm-item">
-                                <input type="checkbox" id="oep-${emp.id}" data-employee-id="${emp.id}" data-perm="ORDER_ENTRY" ${hasOrderEntry ? 'checked' : ''} onchange="onPermissionChange(this)">
-                                <label for="oep-${emp.id}">Order Entry Person</label>
-                            </div>
-                            <div class="perm-item">
-                                <input type="checkbox" id="tm-${emp.id}" data-employee-id="${emp.id}" data-perm="TASK_MANAGER" ${hasTaskManager ? 'checked' : ''} onchange="onPermissionChange(this)">
-                                <label for="tm-${emp.id}">Task Manager</label>
-                            </div>
-                            ${fmsFolderHtml ? `
-                            <div class="perm-section-title">FMS Folders</div>
-                            ${fmsFolderHtml}` : ''}
-                        </div>
-                    </div>
-                </td>
-                <td style="white-space: nowrap;">
-                    <button onclick='editEmployee(${JSON.stringify(emp).replace(/'/g, "&#39;")})' style="padding:6px 12px; background:linear-gradient(135deg,#3b82f6,#2563eb); color:white; border:none; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.3s; margin-right: 8px;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'" title="Edit Employee">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; display:inline-block; vertical-align:middle; margin-right:4px;">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                        </svg>
-                        Edit
-                    </button>
-                    <button onclick='deleteEmployee("${emp.id}")' style="padding:6px 12px; background:linear-gradient(135deg,#ef4444,#dc2626); color:white; border:none; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'" title="Delete Employee">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; display:inline-block; vertical-align:middle; margin-right:4px;">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                        Delete
-                    </button>
-                </td>
-            </tr>`;
-                    }).join('');
+                    tbody.innerHTML = employees.map((emp, idx) => renderEmployeeRow(emp, idx)).join('');
+                    updateSerialNumbers();
                 }
 
                 function renderEmployeeRow(emp, idx) {
                     const perms = emp.permissions || [];
                     const hasOrderEntry = perms.includes('ORDER_ENTRY');
                     const hasTaskManager = perms.includes('TASK_MANAGER');
-                    const fmsFolderPerms = perms.filter(p => p.startsWith('FMS:'));
 
+                    // Build FMS folder perms map/logic if needed, or re-use logic
+                    // Re-implementing logic to be self-contained or use global allFmsFolders
                     const fmsFolderHtml = allFmsFolders.map(folder => {
                         const hasPerm = perms.includes(`FMS:${folder.id}`);
                         return `
-                <div class="perm-item">
-                    <input type="checkbox" id="fms-${folder.id}-${emp.id}" data-employee-id="${emp.id}" data-perm="FMS:${folder.id}" ${hasPerm ? 'checked' : ''} onchange="onPermissionChange(this)">
-                    <label for="fms-${folder.id}-${emp.id}">${escapeHtml(folder.name)}</label>
-                </div>
-            `;
+                            <div class="perm-item">
+                                <input type="checkbox" id="fms-${folder.id}-${emp.id}" data-employee-id="${emp.id}" data-perm="FMS:${folder.id}" ${hasPerm ? 'checked' : ''} onchange="onPermissionChange(this)">
+                                <label for="fms-${folder.id}-${emp.id}">${escapeHtml(folder.name)}</label>
+                            </div>
+                        `;
                     }).join('');
 
                     return `
         <tr data-employee-id="${emp.id}">
             <td>${idx + 1}</td>
             <td>${escapeHtml(emp.name || '')}</td>
+            <td>${escapeHtml(emp.email || '')}</td>
+            <td style="color: #6c757d;">******</td>
             <td>${escapeHtml(emp.department || '')}</td>
             <td>
                 <select class="status-select" data-employee-id="${emp.id}" onchange="onStatusChange(this)">
@@ -922,7 +801,7 @@
             </td>
             <td class="permission-cell">
                 <div class="perm-wrap">
-                    <button type="button" class="perm-trigger" onclick="togglePermDropdown(this)" aria-haspopup="true" aria-expanded="false">Permissions</button>
+                    <button type="button" class="perm-trigger" onclick="togglePermDropdown(this, event)" aria-haspopup="true" aria-expanded="false">Permissions</button>
                     <div class="perm-dropdown" onclick="event.stopPropagation()">
                         <div class="perm-section-title">Basic Permissions</div>
                         <div class="perm-item">
@@ -958,6 +837,8 @@
         </tr>`;
                 }
 
+
+
                 function updateSerialNumbers() {
                     const rows = document.querySelectorAll('#employeeTableBody tr');
                     rows.forEach((row, index) => {
@@ -981,14 +862,13 @@
                         if (res.ok) {
                             // Find row and remove it from UI
                             const row = document.querySelector(`tr[data-employee-id="${empId}"]`);
-                            if (row) {
-                                row.remove();
-                                updateSerialNumbers();
-                            } else {
-                                loadEmployees(); // Fallback
-                            }
-                            // Show toast or alert?
-                            // alert("Employee deleted successfully.");
+                            const tbody = document.getElementById("employeeTableBody");
+                            const currentRowCount = tbody.rows.length;
+                            // const newRowHtml = renderEmployeeRowV2(data, currentRowCount);
+                            // tbody.insertAdjacentHTML('beforeend', newRowHtml);
+                            // updateSerialNumbers();
+                            loadEmployees(); // Reload table
+                            return;
                         } else {
                             const data = await res.json();
                             alert(data.error || "Failed to delete employee.");
@@ -999,74 +879,49 @@
                     }
                 }
 
-                function togglePermDropdown(triggerBtn) {
-                    event.stopPropagation();
-                    const wrap = triggerBtn.closest('.perm-wrap');
-                    const dropdown = wrap ? wrap.querySelector('.perm-dropdown') : null;
-                    document.querySelectorAll('.perm-dropdown').forEach(d => { if (d !== dropdown) d.classList.remove('show'); });
-                    document.querySelectorAll('.perm-fms-dropdown').forEach(d => d.classList.remove('show'));
-                    if (dropdown) dropdown.classList.toggle('show');
-                    triggerBtn.setAttribute('aria-expanded', dropdown && dropdown.classList.contains('show'));
-                }
-
-                function toggleFmsDropdown(triggerBtn) {
-                    event.stopPropagation();
-                    const row = triggerBtn.closest('.perm-fms-row');
-                    const subMenu = row ? row.querySelector('.perm-fms-dropdown') : null;
-                    document.querySelectorAll('.perm-fms-dropdown').forEach(d => { if (d !== subMenu) d.classList.remove('show'); });
-                    if (subMenu) subMenu.classList.toggle('show');
-                    triggerBtn.setAttribute('aria-expanded', subMenu && subMenu.classList.contains('show'));
-                }
-
                 function escapeHtml(text) {
                     const div = document.createElement('div');
                     div.textContent = text;
                     return div.innerHTML;
                 }
 
-                function togglePermDropdown(triggerBtn) {
-                    console.log('[DEBUG] togglePermDropdown called', triggerBtn);
-                    event.stopPropagation();
+                function togglePermDropdown(triggerBtn, evt) {
+                    if (evt) evt.stopPropagation();
                     const wrap = triggerBtn.closest('.perm-wrap');
                     const dropdown = wrap ? wrap.querySelector('.perm-dropdown') : null;
+                    if (!dropdown) return;
 
-                    console.log('[DEBUG] dropdown element:', dropdown);
-
-                    // Close all other dropdowns first
                     document.querySelectorAll('.perm-dropdown').forEach(d => {
                         if (d !== dropdown) {
                             d.classList.remove('show');
                             d.classList.remove('open-upward');
                         }
                     });
+                    document.querySelectorAll('.perm-trigger[aria-expanded="true"]').forEach(btn => {
+                        if (btn !== triggerBtn) btn.setAttribute('aria-expanded', 'false');
+                    });
+                    document.querySelectorAll('.perm-fms-dropdown').forEach(d => d.classList.remove('show'));
 
-                    // Toggle this dropdown
-                    if (dropdown) {
-                        const isCurrentlyShown = dropdown.classList.contains('show');
-                        dropdown.classList.toggle('show');
-
-                        // Smart positioning: check if there's enough space below
-                        if (dropdown.classList.contains('show')) {
-                            const rect = triggerBtn.getBoundingClientRect();
-                            const dropdownHeight = 300; // max-height from CSS
-                            const spaceBelow = window.innerHeight - rect.bottom;
-                            const spaceAbove = rect.top;
-
-                            console.log('[DEBUG] Space below:', spaceBelow, 'Space above:', spaceAbove);
-
-                            // If not enough space below but more space above, open upward
-                            if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
-                                dropdown.classList.add('open-upward');
-                                console.log('[DEBUG] Opening upward');
-                            } else {
-                                dropdown.classList.remove('open-upward');
-                                console.log('[DEBUG] Opening downward');
-                            }
-                        }
-
-                        console.log('[DEBUG] dropdown.classList.contains("show"):', dropdown.classList.contains('show'));
-                        triggerBtn.setAttribute('aria-expanded', dropdown.classList.contains('show'));
+                    dropdown.classList.toggle('show');
+                    if (dropdown.classList.contains('show')) {
+                        const rect = triggerBtn.getBoundingClientRect();
+                        const viewportPadding = 12;
+                        const dropdownHeight = Math.min(dropdown.scrollHeight, Math.floor(window.innerHeight * 0.55), 340);
+                        const spaceBelow = window.innerHeight - rect.bottom - viewportPadding;
+                        const spaceAbove = rect.top - viewportPadding;
+                        dropdown.classList.toggle('open-upward', spaceBelow < dropdownHeight && spaceAbove > spaceBelow);
                     }
+
+                    triggerBtn.setAttribute('aria-expanded', dropdown.classList.contains('show') ? 'true' : 'false');
+                }
+
+                function toggleFmsDropdown(triggerBtn, evt) {
+                    if (evt) evt.stopPropagation();
+                    const row = triggerBtn.closest('.perm-fms-row');
+                    const subMenu = row ? row.querySelector('.perm-fms-dropdown') : null;
+                    document.querySelectorAll('.perm-fms-dropdown').forEach(d => { if (d !== subMenu) d.classList.remove('show'); });
+                    if (subMenu) subMenu.classList.toggle('show');
+                    triggerBtn.setAttribute('aria-expanded', subMenu && subMenu.classList.contains('show') ? 'true' : 'false');
                 }
 
                 function getPermissionPayload(employeeId) {
@@ -1139,13 +994,19 @@
                     }
                 }
 
-                async function addEmployee() {
-                    var name = document.getElementById("empName").value.trim();
-                    var dept = document.getElementById("empDept").value.trim();
-                    var status = document.getElementById("empStatus").value;
+                function editEmployee(id) {
+                    alert("Edit functionality is currently disabled as we transition to the new email/password structure. Please delete and re-create the employee if needed for now.");
+                }
 
-                    if (name === "" || dept === "" || status === "") {
-                        showErrorMessage("Please enter name, department, and status.");
+                async function saveEmployee() {
+                    const name = document.getElementById("empName").value;
+                    const email = document.getElementById("empEmail").value;
+                    const dept = document.getElementById("empDept").value;
+                    const password = document.getElementById("empPassword").value;
+                    const status = "Active"; // Default status
+
+                    if (!name || !dept || !email || !password) {
+                        alert("Name, Email, Department, and Password are required");
                         return;
                     }
 
@@ -1174,9 +1035,11 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 name: name,
+                                email: email,
                                 department: dept,
                                 status: status,
-                                permissions: permissions
+                                permissions: permissions,
+                                password: password
                             })
                         });
                         var data = {};
@@ -1184,16 +1047,7 @@
                         if (res.ok) {
                             closeModal();
                             showSuccessMessage();
-                            // Append new employee row directly
-                            const tbody = document.getElementById("employeeTableBody");
-                            const noEmployeesRow = tbody.querySelector('tr td[colspan="6"]');
-                            if (noEmployeesRow) {
-                                tbody.innerHTML = '';
-                            }
-                            const currentRowCount = tbody.rows.length;
-                            const newRowHtml = renderEmployeeRow(data, currentRowCount);
-                            tbody.insertAdjacentHTML('beforeend', newRowHtml);
-                            updateSerialNumbers();
+                            loadEmployees(); // Reload table
                             return;
                         }
                         showErrorMessage(data.error || "Failed to add employee. Please try again.");
@@ -1208,7 +1062,12 @@
                     // Close dropdowns when clicking outside
                     document.addEventListener('click', function (e) {
                         if (!e.target.closest('.perm-trigger') && !e.target.closest('.perm-dropdown')) {
-                            document.querySelectorAll('.perm-dropdown.show').forEach(el => el.classList.remove('show'));
+                            document.querySelectorAll('.perm-dropdown.show').forEach(el => {
+                                el.classList.remove('show');
+                                el.classList.remove('open-upward');
+                            });
+                            document.querySelectorAll('.perm-trigger').forEach(btn => btn.setAttribute('aria-expanded', 'false'));
+                            document.querySelectorAll('.perm-fms-dropdown.show').forEach(el => el.classList.remove('show'));
                         }
                     });
                 });

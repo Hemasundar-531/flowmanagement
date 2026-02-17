@@ -41,7 +41,8 @@ public class FmsApiController {
         }
 
         if (!repository.findByNameIgnoreCase(trimmed).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorBody("A folder with this name already exists."));
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(errorBody("A folder with this name already exists."));
         }
 
         O2DConfig config = new O2DConfig();

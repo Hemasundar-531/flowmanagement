@@ -417,6 +417,24 @@
             right: 0;
         }
 
+        .drawer-left {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: calc(100% - 260px);
+            height: 100%;
+            background: var(--panel);
+            box-shadow: 18px 0 40px rgba(12, 31, 63, 0.18);
+            padding: 22px;
+            transition: left 0.25s ease;
+            z-index: 40;
+            overflow: auto;
+        }
+
+        .drawer-left.open {
+            left: 0;
+        }
+
         .drawer-backdrop.open {
             opacity: 1;
             pointer-events: auto;
@@ -563,15 +581,7 @@
                             </svg>
                             Production Planning
                         </button>
-                        <form class="folder-switch-form" method="get" th:action="@{/employee/order-entry}"
-                            th:if="${fmsFolders != null and !fmsFolders.isEmpty()}">
-                            <select class="folder-select" name="folderId" onchange="this.form.submit()">
-                                <option th:each="folder : ${fmsFolders}" th:value="${folder.id}"
-                                    th:text="${folder.name}" th:selected="${folder.id == selectedFolderId}">
-                                    FMS
-                                </option>
-                            </select>
-                        </form>
+
                     </div>
                     <div class="title">
                         <h1>Order Entry Dashboard</h1>
@@ -664,6 +674,21 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+                <!-- Production Planned Table -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2>
+                            <span class="title-icon kpi-green">
+                                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" style="color:#186e45;">
+                                    <path
+                                        d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                                </svg>
+                            </span>
+                            Production Planned Order
+                        </h2>
+                    </div>
                     <div class="table-wrap order-entry-table" style="margin-top:16px;"
                         th:if="${orderEntryRows != null and !orderEntryRows.isEmpty()}">
                         <table>
@@ -677,7 +702,7 @@
                             <tbody>
                                 <tr th:each="row : ${orderEntryRows}">
                                     <td>
-                                        <a th:href="@{/employee/order-entry(folderId=${selectedFolderId},entryId=${row['entryId']},planOrderId=${row['orderId']},openPlan='1')}"
+                                        <a th:href="@{/employee/order-entry(folderId=${selectedFolderId},entryId=${row['entryId']},planOrderId=${row['orderId']})}"
                                             th:text="${row['orderId']}">O2D-0000</a>
                                     </td>
                                     <td th:text="${row['customerName']}">-</td>
@@ -699,7 +724,8 @@
                 </div>
 
                 <!-- Planning View -->
-                <div id="planningView" class="section" style="display:none;">
+                <!-- Planning View (Left Drawer) -->
+                <aside id="planningDrawer" class="drawer-left">
                     <div class="section-header">
                         <h2>
                             <span class="title-icon secondary">
@@ -710,18 +736,18 @@
                             </span>
                             Production Planning
                         </h2>
-                        <div class="tag">
-                            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M4 6h6v2H4V6Zm0 5h10v2H4v-2Zm0 5h14v2H4v-2Z" />
+                        <button class="btn btn-ghost" onclick="closePlanning()" style="padding: 8px;">
+                            <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
-                            Process View
-                        </div>
+                        </button>
                     </div>
                     <form id="planningForm" method="post" th:action="@{/employee/order-entry/planning}">
                         <input type="hidden" name="folderId" th:value="${selectedFolderId}">
                         <div class="details" style="margin-top:12px;">
                             <h3>Order Details</h3>
-                            <div class="details-grid" style="grid-template-columns:repeat(3, minmax(200px, 1fr));">
+                            <div class="details-grid" style="grid-template-columns:repeat(1, 1fr);">
                                 <div>
                                     Order ID
                                     <span>
@@ -787,7 +813,7 @@
                     <div style="display:flex;justify-content:flex-end;margin-top:16px;">
                         <button class="btn btn-primary" type="submit" form="planningForm">Submit</button>
                     </div>
-                </div>
+                </aside>
 
                 <!-- Existing Plans -->
                 <div th:if="${planningBlocks != null and !planningBlocks.isEmpty()}">
@@ -917,25 +943,22 @@
         }
 
         function showPlanning() {
-            const planning = document.getElementById("planningView");
-            const entryView = document.getElementById("orderEntryView");
-            const isOpen = planning.style.display === "block";
-            if (isOpen) {
-                planning.style.display = "none";
-                entryView.style.display = "block";
-                return;
-            }
-            entryView.style.display = "none";
-            planning.style.display = "block";
-            planning.scrollIntoView({ behavior: "smooth" });
-            updateTargetDates();
+            const drawer = document.getElementById("planningDrawer");
+            const backdrop = document.getElementById("drawerBackdrop");
+            // Reuse the same backdrop, or create a new one if needed.
+            // For simplicity, we can use the existing backdrop or a new logic.
+            // Let's use the existing backdrop but handle clicks.
+            drawer.classList.add("open");
+            backdrop.classList.add("open");
+            backdrop.onclick = closePlanning; // Override click to close planning
         }
 
-        function hidePlanning() {
-            const planning = document.getElementById("planningView");
-            const entryView = document.getElementById("orderEntryView");
-            planning.style.display = "none";
-            entryView.style.display = "block";
+        function closePlanning() {
+            const drawer = document.getElementById("planningDrawer");
+            const backdrop = document.getElementById("drawerBackdrop");
+            drawer.classList.remove("open");
+            backdrop.classList.remove("open");
+            backdrop.onclick = closeDrawer; // Reset to default right drawer close
         }
 
         function openDrawer() {

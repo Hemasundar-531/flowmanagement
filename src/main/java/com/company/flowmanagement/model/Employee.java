@@ -15,7 +15,13 @@ public class Employee {
     private String name;
     private String department;
     private String status; // Active, Hold, Deleted
+    private String adminId; // ID of the Admin User who created this employee
     private ArrayList<String> permissions = new ArrayList<>();
+
+    private String email;
+
+    @org.springframework.data.annotation.Transient
+    private String password;
 
     public String getId() {
         return id;
@@ -47,6 +53,30 @@ public class Employee {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getAdminId() {
+        return adminId;
+    }
+
+    public void setAdminId(String adminId) {
+        this.adminId = adminId;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public List<String> getPermissions() {

@@ -24,10 +24,13 @@ public class O2DConfigController {
 
     private final O2DConfigRepository repository;
     private final UserRepository userRepository;
+    private final com.company.flowmanagement.repository.EmployeeRepository employeeRepository;
 
-    public O2DConfigController(O2DConfigRepository repository, UserRepository userRepository) {
+    public O2DConfigController(O2DConfigRepository repository, UserRepository userRepository,
+            com.company.flowmanagement.repository.EmployeeRepository employeeRepository) {
         this.repository = repository;
         this.userRepository = userRepository;
+        this.employeeRepository = employeeRepository;
     }
 
     @GetMapping("/fms-list")
@@ -77,6 +80,7 @@ public class O2DConfigController {
     @GetMapping("/fms-process")
     public String viewO2D(@RequestParam("folderId") String folderId,
             @RequestParam(name = "edit", required = false, defaultValue = "false") boolean edit,
+            @RequestParam(name = "returnUrl", required = false) String returnUrl,
             Model model,
             Authentication authentication) {
         if (!canAccessFolder(authentication, folderId)) {
@@ -97,6 +101,7 @@ public class O2DConfigController {
         model.addAttribute("hasData", hasData);
         model.addAttribute("editMode", edit);
         model.addAttribute("config", config);
+        model.addAttribute("returnUrl", returnUrl != null ? returnUrl : "");
         return "fms-process";
     }
 
@@ -104,6 +109,7 @@ public class O2DConfigController {
     public String saveOrderDetails(
             @RequestParam("folderId") String folderId,
             @RequestParam(name = "orderDetails", required = false) List<String> orderDetails,
+            @RequestParam(name = "returnUrl", required = false) String returnUrl,
             Model model,
             HttpSession session,
             Authentication authentication) {
@@ -114,13 +120,21 @@ public class O2DConfigController {
         ArrayList<String> cleanedOrderDetails = cleanOrderDetails(orderDetails);
         session.setAttribute("orderDetailsDraft", cleanedOrderDetails);
         session.setAttribute("folderIdDraft", folderId);
+        if (returnUrl != null && !returnUrl.isEmpty()) {
+            session.setAttribute("returnUrlDraft", returnUrl);
+        }
 
-        return "redirect:/admin/fms-process-steps?folderId=" + folderId + "&edit=true";
+        String redirect = "redirect:/admin/fms-process-steps?folderId=" + folderId + "&edit=true";
+        if (returnUrl != null && !returnUrl.isEmpty()) {
+            redirect += "&returnUrl=" + returnUrl;
+        }
+        return redirect;
     }
 
     @GetMapping("/fms-process-steps")
     public String viewProcessSteps(@RequestParam("folderId") String folderId,
             @RequestParam(name = "edit", required = false, defaultValue = "false") boolean edit,
+            @RequestParam(name = "returnUrl", required = false) String returnUrl,
             HttpSession session,
             Model model,
             Authentication authentication) {
@@ -147,11 +161,18 @@ public class O2DConfigController {
             return "redirect:/admin/fms-process?folderId=" + folderId;
         }
 
+        User currentUser = userRepository.findByUsername(authentication.getName());
         model.addAttribute("folderId", folderId);
         model.addAttribute("folderName", config.getName());
         model.addAttribute("editMode", edit);
         model.addAttribute("config", config);
-        model.addAttribute("employees", userRepository.findByRole("EMPLOYEE"));
+        // Filter employees by the logged-in Admin's ID
+        if (currentUser != null) {
+            model.addAttribute("employees", employeeRepository.findByAdminId(currentUser.getId()));
+        } else {
+            model.addAttribute("employees", new ArrayList<>());
+        }
+        model.addAttribute("returnUrl", returnUrl != null ? returnUrl : "");
         return "fms-process-steps";
     }
 
@@ -212,6 +233,11 @@ public class O2DConfigController {
         session.removeAttribute("orderDetailsDraft");
         session.removeAttribute("folderIdDraft");
 
+        String returnUrlVal = (String) session.getAttribute("returnUrlDraft");
+        session.removeAttribute("returnUrlDraft");
+        if (returnUrlVal != null && !returnUrlVal.isEmpty()) {
+            return "redirect:" + returnUrlVal;
+        }
         return "redirect:/admin/fms-list";
     }
 

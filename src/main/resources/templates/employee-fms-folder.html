@@ -933,274 +933,22 @@
                 </button>
             </div>
 
-            <!-- HARDCODED STEPS FOR E1 (1, 2, 6, 7) -->
-            <!-- STEP 1 -->
-            <div class="table-container"
-                th:if="${#authentication.name == 'E1' or #authentication.name == 'admin' or #authentication.name == 'superadmin'}">
-                <div class="table-header">
-                    <h3>STEP 1: Receive Client Order</h3><span class="badge">0 Records</span>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer Name</th>
-                                <th>Task</th>
-                                <th>Target Date</th>
-                                <th class="text-center">Status</th>
-                                <th class="text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="task-id">-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td class="text-center"><span class="status-badge">-</span></td>
-                                <td class="text-center">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <!-- STEP 2 -->
-            <div class="table-container"
-                th:if="${#authentication.name == 'E1' or #authentication.name == 'admin' or #authentication.name == 'superadmin'}">
-                <div class="table-header">
-                    <h3>STEP 2: Evaluate Client Needs</h3><span class="badge">0 Records</span>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer Name</th>
-                                <th>Task</th>
-                                <th>Target Date</th>
-                                <th class="text-center">Status</th>
-                                <th class="text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="task-id">-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td class="text-center"><span class="status-badge">-</span></td>
-                                <td class="text-center">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- HARDCODED STEPS FOR E2 (3, 4, 5, 8) -->
-            <!-- STEP 3 -->
-            <div class="table-container"
-                th:if="${#authentication.name == 'E2' or #authentication.name == 'admin' or #authentication.name == 'superadmin'}">
-                <div class="table-header">
-                    <h3>STEP 3: Create Proposal & Agreement</h3><span class="badge">0 Records</span>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer Name</th>
-                                <th>Task</th>
-                                <th>Target Date</th>
-                                <th class="text-center">Status</th>
-                                <th class="text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="task-id">-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td class="text-center"><span class="status-badge">-</span></td>
-                                <td class="text-center">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <!-- STEP 4 -->
-            <div class="table-container"
-                th:if="${#authentication.name == 'E2' or #authentication.name == 'admin' or #authentication.name == 'superadmin'}">
-                <div class="table-header">
-                    <h3>STEP 4: Assign Project Team</h3><span class="badge">0 Records</span>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer Name</th>
-                                <th>Task</th>
-                                <th>Target Date</th>
-                                <th class="text-center">Status</th>
-                                <th class="text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="task-id">-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td class="text-center"><span class="status-badge">-</span></td>
-                                <td class="text-center">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <!-- STEP 5 -->
-            <div class="table-container"
-                th:if="${#authentication.name == 'E2' or #authentication.name == 'admin' or #authentication.name == 'superadmin'}">
-                <div class="table-header">
-                    <h3>STEP 5: Planning & Kick-off</h3><span class="badge">0 Records</span>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer Name</th>
-                                <th>Task</th>
-                                <th>Target Date</th>
-                                <th class="text-center">Status</th>
-                                <th class="text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="task-id">-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td class="text-center"><span class="status-badge">-</span></td>
-                                <td class="text-center">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- STEP 6 (E1) -->
-            <div class="table-container"
-                th:if="${#authentication.name == 'E1' or #authentication.name == 'admin' or #authentication.name == 'superadmin'}">
-                <div class="table-header">
-                    <h3>STEP 6: Execute Consulting Work</h3><span class="badge">0 Records</span>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer Name</th>
-                                <th>Task</th>
-                                <th>Target Date</th>
-                                <th class="text-center">Status</th>
-                                <th class="text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="task-id">-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td class="text-center"><span class="status-badge">-</span></td>
-                                <td class="text-center">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <!-- STEP 7 (E1) -->
-            <div class="table-container"
-                th:if="${#authentication.name == 'E1' or #authentication.name == 'admin' or #authentication.name == 'superadmin'}">
-                <div class="table-header">
-                    <h3>STEP 7: Review & Adjust</h3><span class="badge">0 Records</span>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer Name</th>
-                                <th>Task</th>
-                                <th>Target Date</th>
-                                <th class="text-center">Status</th>
-                                <th class="text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="task-id">-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td class="text-center"><span class="status-badge">-</span></td>
-                                <td class="text-center">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- STEP 8 (E2) -->
-            <div class="table-container"
-                th:if="${#authentication.name == 'E2' or #authentication.name == 'admin' or #authentication.name == 'superadmin'}">
-                <div class="table-header">
-                    <h3>STEP 8: Final Delivery & Sign-off</h3><span class="badge">0 Records</span>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer Name</th>
-                                <th>Task</th>
-                                <th>Target Date</th>
-                                <th class="text-center">Status</th>
-                                <th class="text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="task-id">-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td class="text-center"><span class="status-badge">-</span></td>
-                                <td class="text-center">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- DYNAMIC (Fallback for E3 or assigned users) -->
+            <!-- FMS PENDING TASKS BY PROCESS STEP -->
             <th:block th:if="${currentFolder != null and currentFolder.processDetails != null}">
-                <div class="table-container" th:each="step : ${currentFolder.processDetails}"
-                    th:if="${#authentication.name != 'E1' and #authentication.name != 'E2' and #authentication.name != 'admin' and #authentication.name != 'superadmin' and step.responsiblePerson != null and step.responsiblePerson.trim() == #authentication.name}">
+                <div class="table-container" th:each="step,iter : ${currentFolder.processDetails}"
+                    th:if="${step.responsiblePerson != null and (#authentication.name == 'admin' or #authentication.name == 'superadmin' or #strings.toLowerCase(step.responsiblePerson) == #strings.toLowerCase(#authentication.name))}">
                     <div class="table-header">
-                        <h3 th:text="${step.stepProcess}">Step Name</h3>
-                        <span class="badge">0 Records</span>
+                        <h3 th:text="${'STEP ' + (iter.index + 1) + ': ' + step.stepProcess}">STEP 1: Process</h3>
+                        <span class="badge"
+                            th:text="${(fmsPendingTasksByStep != null and fmsPendingTasksByStep[step.stepProcess] != null ? #lists.size(fmsPendingTasksByStep[step.stepProcess]) : 0) + ' Records'}">0
+                            Records</span>
                     </div>
-                    <!-- Table Body similar to above -->
                     <div style="overflow-x: auto;">
                         <table>
                             <thead>
                                 <tr>
                                     <th>Order ID</th>
+                                    <th>Customer Name</th>
                                     <th>Task</th>
                                     <th>Target Date</th>
                                     <th class="text-center">Status</th>
@@ -1208,12 +956,22 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>-</td>
-                                    <td>-</td>
-                                    <td>-</td>
-                                    <td class="text-center">-</td>
-                                    <td class="text-center">-</td>
+                                <tr th:each="task : ${fmsPendingTasksByStep != null ? fmsPendingTasksByStep[step.stepProcess] : null}">
+                                    <td class="task-id" th:text="${task.orderId}">ORD-001</td>
+                                    <td th:text="${task.customerName}">Customer</td>
+                                    <td class="task-title" th:text="${task.taskName}">Task</td>
+                                    <td style="color: #64748b; font-weight: 700;" th:text="${task.targetDate}">2026-01-01</td>
+                                    <td class="text-center">
+                                        <span class="status-badge"
+                                            th:classappend="${#strings.toLowerCase(task.status) == 'completed' ? 'completed' : #strings.toLowerCase(task.status) == 'in progress' ? 'in-progress' : #strings.toLowerCase(task.status) == 'overdue' ? 'overdue' : #strings.toLowerCase(task.status) == 'delayed' ? 'delayed' : 'on-time'}"
+                                            th:text="${task.status}">On Time</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="table-action-btn complete" onclick="openCompleteModal()">Update</button>
+                                    </td>
+                                </tr>
+                                <tr th:if="${fmsPendingTasksByStep == null or fmsPendingTasksByStep[step.stepProcess] == null or fmsPendingTasksByStep[step.stepProcess].isEmpty()}">
+                                    <td colspan="6" class="text-center" style="padding: 20px; color: #94a3b8;">No tasks found for this step.</td>
                                 </tr>
                             </tbody>
                         </table>

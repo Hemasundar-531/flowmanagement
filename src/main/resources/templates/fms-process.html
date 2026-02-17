@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <title>FMS Process</title>
 
@@ -22,8 +23,8 @@
         body {
             font-family: "Poppins", "Segoe UI", Tahoma, sans-serif;
             background:
-                radial-gradient(circle at 10% 12%, rgba(10,166,166,0.12), transparent 45%),
-                radial-gradient(circle at 90% 6%, rgba(31,60,136,0.16), transparent 45%),
+                radial-gradient(circle at 10% 12%, rgba(10, 166, 166, 0.12), transparent 45%),
+                radial-gradient(circle at 90% 6%, rgba(31, 60, 136, 0.16), transparent 45%),
                 var(--bg);
             margin: 0;
             color: var(--ink);
@@ -60,11 +61,12 @@
             top: -90px;
             width: 220px;
             height: 220px;
-            background: rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.08);
             border-radius: 50%;
         }
 
-        .header h2, .header h3 {
+        .header h2,
+        .header h3 {
             margin: 0;
             position: relative;
             z-index: 1;
@@ -112,7 +114,8 @@
             margin-bottom: 20px;
         }
 
-        th, td {
+        th,
+        td {
             padding: 18px 16px;
             border-bottom: 1px solid #e1e5e9;
             text-align: left;
@@ -150,7 +153,7 @@
         input:focus {
             outline: none;
             border-color: var(--navy);
-            box-shadow: 0 0 0 3px rgba(31,60,136,0.1);
+            box-shadow: 0 0 0 3px rgba(31, 60, 136, 0.1);
         }
 
         .actions {
@@ -161,7 +164,10 @@
             flex-wrap: wrap;
         }
 
-        .next-btn, .save-btn, .add-btn, .edit-btn {
+        .next-btn,
+        .save-btn,
+        .add-btn,
+        .edit-btn {
             padding: 12px 24px;
             border: none;
             border-radius: 8px;
@@ -327,12 +333,14 @@
                 align-items: stretch;
             }
 
-            .next-btn, .save-btn {
+            .next-btn,
+            .save-btn {
                 width: 100%;
                 justify-content: center;
             }
 
-            th, td {
+            th,
+            td {
                 padding: 12px 8px;
                 font-size: 14px;
             }
@@ -363,16 +371,25 @@
         }
 
         /* Accessibility */
-        .next-btn, .save-btn, .add-btn, .edit-btn {
+        .next-btn,
+        .save-btn,
+        .add-btn,
+        .edit-btn {
             position: relative;
         }
 
-        .next-btn[aria-label], .save-btn[aria-label], .add-btn[aria-label], .edit-btn[aria-label] {
+        .next-btn[aria-label],
+        .save-btn[aria-label],
+        .add-btn[aria-label],
+        .edit-btn[aria-label] {
             /* ARIA labels added in HTML */
         }
 
         /* Focus visible for better keyboard navigation */
-        .next-btn:focus-visible, .save-btn:focus-visible, .add-btn:focus-visible, .edit-btn:focus-visible,
+        .next-btn:focus-visible,
+        .save-btn:focus-visible,
+        .add-btn:focus-visible,
+        .edit-btn:focus-visible,
         input:focus-visible {
             outline: 2px solid var(--teal);
             outline-offset: 2px;
@@ -383,139 +400,147 @@
 <body>
     <th:block th:replace="~{fragments/admin-navbar :: navbar}"></th:block>
 
-<div class="app-shell">
-    <main class="app-content">
+    <div class="app-shell">
+        <main class="app-content">
 
-<div class="header">
-    <h2>HQEPL – Flow Management System</h2>
-    <h3>ADMIN DASHBOARD</h3>
-</div>
-
-<div class="container">
-    <div class="breadcrumbs">
-        <a href="/admin/dashboard">Home</a>
-        <span>›</span>
-        <a href="/admin/fms-list">Flows</a>
-        <span>›</span>
-        <span th:text="${folderName}">Flow</span>
-    </div>
-
-    <div th:if="${!hasData or editMode}">
-        <form method="post" action="/admin/fms-process-steps">
-            <input type="hidden" name="folderId" th:value="${folderId}">
-            <input type="hidden" name="edit" th:value="${editMode}">
-            <div class="top-actions">
-                <button class="add-btn" type="button" onclick="addOrderRow()" aria-label="Add a new order row">
-                    <svg class="icon icon-lg" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M12 5a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H6a1 1 0 1 1 0-2h5V6a1 1 0 0 1 1-1z"/>
-                    </svg>
-                </button>
+            <div class="header">
+                <h2>HQEPL – Flow Management System</h2>
+                <h3>ADMIN DASHBOARD</h3>
             </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width:10%">S.No</th>
-                        <th>Order Details</th>
-                    </tr>
-                </thead>
-                <tbody id="orderBody">
-                    <tr th:if="${config.orderDetails == null or #lists.isEmpty(config.orderDetails)}">
-                        <td>1</td>
-                        <td>
-                            <input type="text" name="orderDetails" placeholder="Enter order details">
-                        </td>
-                    </tr>
-                    <tr th:each="detail, iter : ${config.orderDetails}">
-                        <td th:text="${iter.index + 1}">1</td>
-                        <td>
-                            <input type="text" name="orderDetails" th:value="${detail}" placeholder="Enter order details">
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div class="actions">
-                <button class="next-btn" type="submit">
-                    <svg class="icon icon-lg" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M13 5a1 1 0 0 1 1.7-.7l5 5a1 1 0 0 1 0 1.4l-5 5A1 1 0 0 1 13 15V9a1 1 0 0 1 1-1h-7a1 1 0 1 1 0-2h7a1 1 0 0 1-1-1Z"/>
-                    </svg>
-                    Next Page
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <div th:if="${hasData and !editMode}">
-        <div class="summary-grid">
-            <div class="summary-card">
-                <h4 class="summary-title">Order Details</h4>
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width:10%">SR</th>
-                            <th>Order Details</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="detail, iter : ${config.orderDetails}">
-                            <td th:text="${iter.index + 1}">1</td>
-                            <td th:text="${detail}">Order Number</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div style="margin-top:14px; display:flex; justify-content:flex-start;">
-                    <a th:href="@{/admin/fms-process(folderId=${folderId}, edit=true)}" class="edit-btn" aria-label="Edit order details">
-                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M4 16.5V20h3.5L18.8 8.7l-3.5-3.5L4 16.5Zm16.7-10.2a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.4 1.4 3.5 3.5 1.4-1.9Z"/>
-                        </svg>
-                        Edit
-                    </a>
+            <div class="container">
+                <div class="breadcrumbs">
+                    <a href="/admin/dashboard">Home</a>
+                    <span>›</span>
+                    <a href="/admin/fms-list">Flows</a>
+                    <span>›</span>
+                    <span th:text="${folderName}">Flow</span>
                 </div>
+
+                <div th:if="${!hasData or editMode}">
+                    <form method="post" action="/admin/fms-process-steps">
+                        <input type="hidden" name="folderId" th:value="${folderId}">
+                        <input type="hidden" name="edit" th:value="${editMode}">
+                        <input type="hidden" name="returnUrl" th:value="${returnUrl}">
+                        <div class="top-actions">
+                            <button class="add-btn" type="button" onclick="addOrderRow()"
+                                aria-label="Add a new order row">
+                                <svg class="icon icon-lg" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path
+                                        d="M12 5a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H6a1 1 0 1 1 0-2h5V6a1 1 0 0 1 1-1z" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:10%">S.No</th>
+                                    <th>Order Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orderBody">
+                                <tr th:if="${config.orderDetails == null or #lists.isEmpty(config.orderDetails)}">
+                                    <td>1</td>
+                                    <td>
+                                        <input type="text" name="orderDetails" placeholder="Enter order details">
+                                    </td>
+                                </tr>
+                                <tr th:each="detail, iter : ${config.orderDetails}">
+                                    <td th:text="${iter.index + 1}">1</td>
+                                    <td>
+                                        <input type="text" name="orderDetails" th:value="${detail}"
+                                            placeholder="Enter order details">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="actions">
+                            <button class="next-btn" type="submit">
+                                <svg class="icon icon-lg" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path
+                                        d="M13 5a1 1 0 0 1 1.7-.7l5 5a1 1 0 0 1 0 1.4l-5 5A1 1 0 0 1 13 15V9a1 1 0 0 1 1-1h-7a1 1 0 1 1 0-2h7a1 1 0 0 1-1-1Z" />
+                                </svg>
+                                Next Page
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div th:if="${hasData and !editMode}">
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <h4 class="summary-title">Order Details</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width:10%">SR</th>
+                                        <th>Order Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="detail, iter : ${config.orderDetails}">
+                                        <td th:text="${iter.index + 1}">1</td>
+                                        <td th:text="${detail}">Order Number</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div style="margin-top:14px; display:flex; justify-content:flex-start;">
+                                <a th:href="@{/admin/fms-process(folderId=${folderId}, edit=true)}" class="edit-btn"
+                                    aria-label="Edit order details">
+                                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path
+                                            d="M4 16.5V20h3.5L18.8 8.7l-3.5-3.5L4 16.5Zm16.7-10.2a1 1 0 0 0 0-1.4l-1.6-1.6a1 1 0 0 0-1.4 0l-1.4 1.4 3.5 3.5 1.4-1.9Z" />
+                                    </svg>
+                                    Edit
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="summary-card">
+                            <h4 class="summary-title">Process Details</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>S.No</th>
+                                        <th>Step / Process</th>
+                                        <th>Responsible Person</th>
+                                        <th>Target Type</th>
+                                        <th>Days</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="step, iter : ${config.processDetails}">
+                                        <td th:text="${iter.index + 1}">1</td>
+                                        <td th:text="${step.stepProcess}">Order Confirmation</td>
+                                        <td th:text="${step.responsiblePerson}">Sales</td>
+                                        <td th:text="${step.targetType}">Manual</td>
+                                        <td th:text="${step.days}">5</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="summary-card">
-                <h4 class="summary-title">Process Details</h4>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>S.No</th>
-                            <th>Step / Process</th>
-                            <th>Responsible Person</th>
-                            <th>Target Type</th>
-                            <th>Days</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="step, iter : ${config.processDetails}">
-                            <td th:text="${iter.index + 1}">1</td>
-                            <td th:text="${step.stepProcess}">Order Confirmation</td>
-                            <td th:text="${step.responsiblePerson}">Sales</td>
-                            <td th:text="${step.targetType}">Manual</td>
-                            <td th:text="${step.days}">5</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+            <script>
+                function addOrderRow() {
+                    const tbody = document.getElementById("orderBody");
+                    const rowCount = tbody.rows.length + 1;
+                    const row = tbody.insertRow(tbody.rows.length);
+
+                    row.insertCell(0).innerText = rowCount;
+                    row.insertCell(1).innerHTML = '<input type="text" name="orderDetails" placeholder="Enter order details">';
+                }
+
+
+            </script>
+
+        </main>
     </div>
-
-</div>
-
-<script>
-    function addOrderRow(){
-        const tbody = document.getElementById("orderBody");
-        const rowCount = tbody.rows.length + 1;
-        const row = tbody.insertRow(tbody.rows.length);
-
-        row.insertCell(0).innerText = rowCount;
-        row.insertCell(1).innerHTML = '<input type="text" name="orderDetails" placeholder="Enter order details">';
-    }
-
-    
-</script>
-
-</main>
-</div>
 </body>
+
 </html>

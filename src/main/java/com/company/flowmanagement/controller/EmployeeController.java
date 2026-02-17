@@ -60,23 +60,16 @@ public class EmployeeController {
     @GetMapping("/dashboard")
     public String employeeDashboard(Model model, Authentication authentication) {
         String username = authentication.getName();
-        Optional<Employee> employeeOpt = employeeRepository.findByName(username);
 
-        if (employeeOpt.isPresent()) {
-            List<String> perms = employeeOpt.get().getPermissions();
-            if (perms != null) {
-                if (perms.contains("ORDER_ENTRY")) {
-                    return "redirect:/employee/order-entry";
-                } else if (perms.contains("TASK_MANAGER")) {
-                    return "redirect:/employee/task-manager";
-                } else if (!perms.isEmpty()) {
-                    return "redirect:/employee/fms";
-                }
-            }
-        }
+        // 1. Get Employee Context (Permissions, FMS Folders)
+        model.addAllAttributes(employeeService.getEmployeeContext(username));
 
-        // If no permissions or user not found, redirect to a default or error
-        return "redirect:/employee/task-manager"; // Fallback
+        // 2. Get Dashboard Stats (Task Counts, etc.)
+        Map<String, Object> stats = taskService.getDashboardStats(username);
+        model.addAttribute("dashboardStats", stats);
+
+        // 3. Return the actual dashboard template
+        return "employee-dashboard";
     }
 
     @GetMapping("/order-entry")
@@ -429,43 +422,6 @@ public class EmployeeController {
             model.addAttribute("fmsCompletedTasks", fmsCompletedTasks);
             model.addAttribute("fmsPendingTasksByStep", fmsPendingTasksByStep);
 
-            // --- TEMP DEBUG: INJECT MOCK DATA IF EMPTY ---
-            if (fmsOverdueTasks.isEmpty()) {
-                Map<String, String> mockOverdue = new LinkedHashMap<>();
-                mockOverdue.put("sr", "1");
-                mockOverdue.put("orderId", "MOCK-OVER");
-                mockOverdue.put("customerName", "Test Client");
-                mockOverdue.put("taskName", "Step 1 Mock (Debug)");
-                mockOverdue.put("targetDate", "2025-01-01");
-                mockOverdue.put("status", "Pending");
-                fmsOverdueTasks.add(mockOverdue);
-            }
-            if (fmsPendingTasksByStep.isEmpty()) {
-                // Mock Step 1
-                List<Map<String, String>> step1List = new ArrayList<>();
-                Map<String, String> m1 = new LinkedHashMap<>();
-                m1.put("sr", "1");
-                m1.put("orderId", "ORD-100");
-                m1.put("customerName", "Alpha Corp");
-                m1.put("taskName", "Step 1: Design");
-                m1.put("targetDate", "2030-01-01");
-                m1.put("status", "Pending");
-                step1List.add(m1);
-                fmsPendingTasksByStep.put("Step 1: Design", step1List);
-
-                // Mock Step 2
-                List<Map<String, String>> step2List = new ArrayList<>();
-                Map<String, String> m2 = new LinkedHashMap<>();
-                m2.put("sr", "1");
-                m2.put("orderId", "ORD-101");
-                m2.put("customerName", "Beta Inc");
-                m2.put("taskName", "Step 7: QC");
-                m2.put("targetDate", "2030-01-05");
-                m2.put("status", "Pending");
-                step2List.add(m2);
-                fmsPendingTasksByStep.put("Step 7: QC", step2List);
-            }
-            // ---------------------------------------------
         }
 
         return "employee-fms-folder";

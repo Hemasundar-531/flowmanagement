@@ -13,6 +13,7 @@ public class User {
 
     private String username;
     private String password;
+    private String rawPassword;
     private String role; // ADMIN, ORDER, EMPLOYEE
 
     private ArrayList<String> permissions = new ArrayList<>();
@@ -45,6 +46,14 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getRawPassword() {
+        return rawPassword;
+    }
+
+    public void setRawPassword(String rawPassword) {
+        this.rawPassword = rawPassword;
     }
 
     public String getRole() {
