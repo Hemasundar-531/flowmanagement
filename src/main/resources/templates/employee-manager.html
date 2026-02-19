@@ -772,6 +772,7 @@
                     const perms = emp.permissions || [];
                     const hasOrderEntry = perms.includes('ORDER_ENTRY');
                     const hasTaskManager = perms.includes('TASK_MANAGER');
+                    const pwd = escapeHtml(emp.password || '1234567');
 
                     // Build FMS folder perms map/logic if needed, or re-use logic
                     // Re-implementing logic to be self-contained or use global allFmsFolders
@@ -790,7 +791,23 @@
             <td>${idx + 1}</td>
             <td>${escapeHtml(emp.name || '')}</td>
             <td>${escapeHtml(emp.email || '')}</td>
-            <td style="color: #6c757d;">******</td>
+            <td>
+                <div style="display:inline-flex; align-items:center; gap:8px;">
+                    <span class="pwd-mask" style="color:#6c757d;">******</span>
+                    <span class="pwd-real" style="display:none; color:#0f172a; font-weight:600;">${pwd}</span>
+                    <button type="button" onclick="toggleRowPassword(this)" title="Show password"
+                        style="border:none; background:transparent; color:#64748b; cursor:pointer; padding:2px; display:inline-flex; align-items:center;">
+                        <svg class="eye-open" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <svg class="eye-closed" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                    </button>
+                </div>
+            </td>
             <td>${escapeHtml(emp.department || '')}</td>
             <td>
                 <select class="status-select" data-employee-id="${emp.id}" onchange="onStatusChange(this)">
@@ -883,6 +900,22 @@
                     const div = document.createElement('div');
                     div.textContent = text;
                     return div.innerHTML;
+                }
+
+                function toggleRowPassword(btn) {
+                    const cell = btn.closest('td');
+                    if (!cell) return;
+                    const mask = cell.querySelector('.pwd-mask');
+                    const real = cell.querySelector('.pwd-real');
+                    const eyeOpen = btn.querySelector('.eye-open');
+                    const eyeClosed = btn.querySelector('.eye-closed');
+                    const showing = real && real.style.display !== 'none';
+
+                    if (mask) mask.style.display = showing ? '' : 'none';
+                    if (real) real.style.display = showing ? 'none' : '';
+                    if (eyeOpen) eyeOpen.style.display = showing ? '' : 'none';
+                    if (eyeClosed) eyeClosed.style.display = showing ? 'none' : '';
+                    btn.title = showing ? 'Show password' : 'Hide password';
                 }
 
                 function togglePermDropdown(triggerBtn, evt) {

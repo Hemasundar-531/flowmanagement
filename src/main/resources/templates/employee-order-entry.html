@@ -54,6 +54,10 @@
             overflow-y: auto;
         }
 
+        .emp-main-content.superadmin-main {
+            margin-left: 0;
+        }
+
         .page {
             max-width: 1200px;
             margin: 0 auto 60px;
@@ -566,10 +570,14 @@
 <body>
     <div class="app-shell">
         <!-- Sidebar Segment -->
-        <th:block th:replace="~{fragments/employee-sidebar :: sidebar}"></th:block>
+        <th:block th:if="${superadminView != true}" th:replace="~{fragments/employee-sidebar :: sidebar}"></th:block>
 
-        <main class="emp-main-content">
+        <main class="emp-main-content" th:classappend="${superadminView} ? ' superadmin-main' : ''">
             <div class="page">
+                <div th:if="${superadminView}" style="margin-bottom:12px;">
+                    <a th:href="'/superadmin/company-detail/' + ${adminId} + '/folder/' + ${folderId}"
+                        style="text-decoration:none; color:#1f5fbf; font-weight:700;">← Back to FMS</a>
+                </div>
                 <input id="savedFlag" type="hidden" th:value="${saved}">
                 <input id="savedFolderId" type="hidden" th:value="${selectedFolderId}">
 
@@ -584,8 +592,11 @@
 
                     </div>
                     <div class="title">
-                        <h1>Order Entry Dashboard</h1>
-                        <p>Modern corporate ERP for O2D order creation and planning</p>
+                        <h1 th:text="${superadminView} ? 'Order Entry Dashboard (Super Admin)' : 'Order Entry Dashboard'">
+                            Order Entry Dashboard</h1>
+                        <p
+                            th:text="${superadminView} ? ('Employee: ' + (selectedEmployee != null ? selectedEmployee.name : '-') + ' | FMS: ' + (folder != null ? folder.name : '-')) : 'Modern corporate ERP for O2D order creation and planning'">
+                            Modern corporate ERP for O2D order creation and planning</p>
                     </div>
                     <div class="right">
                         <button class="btn btn-primary" type="button" onclick="openDrawer()">
@@ -650,7 +661,7 @@
                                     <td th:each="val : ${row['values']}" th:text="${val}">-</td>
                                     <td>
                                         <!-- Using manual form submission for status change -->
-                                        <form th:action="@{/employee/order-entry/planning-status}" method="post"
+                                        <form th:action="${orderEntryPlanningStatusPath}" method="post"
                                             style="margin:0;">
                                             <input type="hidden" name="entryId" th:value="${row['entryId']}">
                                             <input type="hidden" name="folderId" th:value="${selectedFolderId}">
@@ -702,7 +713,7 @@
                             <tbody>
                                 <tr th:each="row : ${orderEntryRows}">
                                     <td>
-                                        <a th:href="@{/employee/order-entry(folderId=${selectedFolderId},entryId=${row['entryId']},planOrderId=${row['orderId']})}"
+                                        <a th:href="${orderEntryBasePath} + '?folderId=' + ${selectedFolderId} + '&entryId=' + ${row['entryId']} + '&planOrderId=' + ${row['orderId']}"
                                             th:text="${row['orderId']}">O2D-0000</a>
                                     </td>
                                     <td th:text="${row['customerName']}">-</td>
@@ -743,7 +754,7 @@
                             </svg>
                         </button>
                     </div>
-                    <form id="planningForm" method="post" th:action="@{/employee/order-entry/planning}">
+                    <form id="planningForm" method="post" th:action="${orderEntryPlanningPath}">
                         <input type="hidden" name="folderId" th:value="${selectedFolderId}">
                         <div class="details" style="margin-top:12px;">
                             <h3>Order Details</h3>
@@ -895,7 +906,7 @@
                 <div id="drawer" class="drawer" aria-hidden="true">
                     <h3>New Order Entry</h3>
                     <p class="sub">Order Details Section</p>
-                    <form class="form-card" method="post" th:action="@{/employee/order-entry/entry}">
+                    <form class="form-card" method="post" th:action="${orderEntryEntryPath}">
                         <input type="hidden" name="folderId" th:value="${selectedFolderId}">
                         <div class="field-grid">
                             <div class="field">
@@ -936,6 +947,11 @@
     </div>
 
     <!-- Scripts (Adapted for Employee Portal endpoints) -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const orderEntryFetchEntryPath = /*[[${orderEntryFetchEntryPath}]]*/ '/employee/order-entry/entry';
+        /*]]>*/
+    </script>
     <script>
         function generateOrderId() {
             const rand = Math.floor(1000 + Math.random() * 9000);
@@ -995,7 +1011,7 @@
             }
 
             // Using the employee endpoint
-            fetch("/employee/order-entry/entry?folderId=" + encodeURIComponent(folderId) + "&orderId=" + encodeURIComponent(orderId))
+            fetch(orderEntryFetchEntryPath + "?folderId=" + encodeURIComponent(folderId) + "&orderId=" + encodeURIComponent(orderId))
                 .then(resp => resp.ok ? resp.json() : null)
                 .then(entry => {
                     if (!entry || !entry.fields) {

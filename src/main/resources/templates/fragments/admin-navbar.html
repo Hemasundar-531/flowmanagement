@@ -124,15 +124,20 @@
                 </div>
             </div>
 
-            <form th:action="@{/logout}" method="post" class="admin-navbar-logout-form" id="admin-logout-form">
-                <button type="submit" class="admin-navbar-logout-btn">
-                    <span>Disconnect</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                </button>
-            </form>
+            <div class="admin-navbar-right" style="display:flex; align-items:center; gap:20px;">
+                <span th:if="${username != null}" th:text="${username}"
+                    style="font-size:14px; font-weight:600; color:rgba(255,255,255,0.9);">Admin</span>
+                <form th:action="@{/logout}" method="post" class="admin-navbar-logout-form" id="admin-logout-form"
+                    style="margin:0;">
+                    <button type="submit" class="admin-navbar-logout-btn">
+                        <span>Disconnect</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                    </button>
+                </form>
+            </div>
         </header>
         <script th:inline="javascript">
             (function () {

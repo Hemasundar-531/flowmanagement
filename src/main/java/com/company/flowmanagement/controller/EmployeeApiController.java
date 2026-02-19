@@ -44,6 +44,18 @@ public class EmployeeApiController {
         // Filter employees by adminId
         List<Employee> employees = employeeRepository.findByAdminId(admin.getId());
 
+        // Attach display password for UI toggle (uses stored raw password when available)
+        for (Employee emp : employees) {
+            String displayPwd = EmployeeService.DEFAULT_EMPLOYEE_PASSWORD;
+            if (emp.getName() != null) {
+                com.company.flowmanagement.model.User user = userRepository.findByUsername(emp.getName());
+                if (user != null && user.getRawPassword() != null && !user.getRawPassword().isBlank()) {
+                    displayPwd = user.getRawPassword();
+                }
+            }
+            emp.setPassword(displayPwd);
+        }
+
         // Filter FMS folders by permissions (ADMIN_FMS:{id})
         List<com.company.flowmanagement.model.O2DConfig> folders = new ArrayList<>();
         List<String> perms = admin.getPermissions();

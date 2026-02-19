@@ -83,6 +83,12 @@ public class EmployeeController {
 
         String username = authentication.getName();
         model.addAllAttributes(employeeService.getEmployeeContext(username));
+        model.addAttribute("superadminView", false);
+        model.addAttribute("orderEntryBasePath", "/employee/order-entry");
+        model.addAttribute("orderEntryEntryPath", "/employee/order-entry/entry");
+        model.addAttribute("orderEntryPlanningPath", "/employee/order-entry/planning");
+        model.addAttribute("orderEntryPlanningStatusPath", "/employee/order-entry/planning-status");
+        model.addAttribute("orderEntryFetchEntryPath", "/employee/order-entry/entry");
 
         O2DConfig config = null;
         if (folderId != null && !folderId.isBlank()) {

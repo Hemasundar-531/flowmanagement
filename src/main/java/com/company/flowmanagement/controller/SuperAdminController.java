@@ -3,7 +3,9 @@ package com.company.flowmanagement.controller;
 import com.company.flowmanagement.model.User;
 import com.company.flowmanagement.repository.O2DConfigRepository;
 import com.company.flowmanagement.repository.UserRepository;
+import com.company.flowmanagement.controller.EmployeeController;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,15 +35,18 @@ public class SuperAdminController {
     private final O2DConfigRepository o2dConfigRepository;
     private final PasswordEncoder passwordEncoder;
     private final com.company.flowmanagement.repository.EmployeeRepository employeeRepository;
+    private final EmployeeController employeeController;
 
     public SuperAdminController(UserRepository userRepository,
             O2DConfigRepository o2dConfigRepository,
             PasswordEncoder passwordEncoder,
-            com.company.flowmanagement.repository.EmployeeRepository employeeRepository) {
+            com.company.flowmanagement.repository.EmployeeRepository employeeRepository,
+            EmployeeController employeeController) {
         this.userRepository = userRepository;
         this.o2dConfigRepository = o2dConfigRepository;
         this.passwordEncoder = passwordEncoder;
         this.employeeRepository = employeeRepository;
+        this.employeeController = employeeController;
     }
 
     @GetMapping("/dashboard")
@@ -112,6 +117,7 @@ public class SuperAdminController {
         model.addAttribute("admin", admin);
         model.addAttribute("folders", adminFolders);
         model.addAttribute("allFolders", allFolders);
+        model.addAttribute("companyEmployees", employeeRepository.findByAdminId(id));
 
         long configuredCount = adminFolders.stream().filter(f -> f.isConfigured()).count();
         model.addAttribute("configuredCount", configuredCount);
@@ -181,9 +187,141 @@ public class SuperAdminController {
         model.addAttribute("folderId", folderId);
         model.addAttribute("editMode", edit);
         if (edit) {
-            model.addAttribute("employees", userRepository.findByRole("EMPLOYEE"));
+            model.addAttribute("employees", employeeRepository.findByAdminId(adminId));
         }
         return "superadmin-folder-detail";
+    }
+
+    @GetMapping("/company-detail/{adminId}/folder/{folderId}/employee/{employeeId}/order-entry")
+    public String employeeOrderEntryFromSuperAdmin(@PathVariable("adminId") String adminId,
+            @PathVariable("folderId") String folderId,
+            @PathVariable("employeeId") String employeeId,
+            @RequestParam(name = "entryId", required = false) String entryId,
+            @RequestParam(name = "planOrderId", required = false) String planOrderId,
+            @RequestParam(name = "planStart", required = false) String planStart,
+            @RequestParam(name = "planning", required = false) Boolean planning,
+            @RequestParam(name = "saved", required = false) Boolean saved,
+            Model model) {
+        User admin = userRepository.findById(adminId).orElse(null);
+        if (admin == null) {
+            return "redirect:/superadmin/company-manage";
+        }
+
+        com.company.flowmanagement.model.Employee employee = employeeRepository.findById(employeeId).orElse(null);
+        if (employee == null || employee.getAdminId() == null || !adminId.equals(employee.getAdminId())) {
+            return "redirect:/superadmin/company-detail/" + adminId;
+        }
+
+        UsernamePasswordAuthenticationToken employeeAuth = new UsernamePasswordAuthenticationToken(
+                employee.getName(), null, java.util.List.of());
+
+        String result = employeeController.orderEntry(folderId, entryId, planOrderId, planStart, planning, saved, model,
+                employeeAuth);
+        if (result != null && result.startsWith("redirect:")) {
+            return "redirect:/superadmin/company-detail/" + adminId + "/folder/" + folderId;
+        }
+
+        com.company.flowmanagement.model.O2DConfig folder = o2dConfigRepository.findById(folderId).orElse(null);
+        model.addAttribute("admin", admin);
+        model.addAttribute("folder", folder);
+        model.addAttribute("adminId", adminId);
+        model.addAttribute("folderId", folderId);
+        model.addAttribute("selectedEmployee", employee);
+        String basePath = "/superadmin/company-detail/" + adminId + "/folder/" + folderId + "/employee/" + employeeId
+                + "/order-entry";
+        model.addAttribute("superadminView", true);
+        model.addAttribute("orderEntryBasePath", basePath);
+        model.addAttribute("orderEntryEntryPath", basePath + "/entry");
+        model.addAttribute("orderEntryPlanningPath", basePath + "/planning");
+        model.addAttribute("orderEntryPlanningStatusPath", basePath + "/planning-status");
+        model.addAttribute("orderEntryFetchEntryPath", basePath + "/entry");
+        return "employee-order-entry";
+    }
+
+    @GetMapping("/company-detail/{adminId}/folder/{folderId}/employee/{employeeId}/order-entry/entry")
+    @ResponseBody
+    public com.company.flowmanagement.model.OrderEntry fetchEmployeeOrderEntryFromSuperAdmin(
+            @PathVariable("adminId") String adminId,
+            @PathVariable("folderId") String folderId,
+            @PathVariable("employeeId") String employeeId,
+            @RequestParam("orderId") String orderId) {
+        com.company.flowmanagement.model.Employee employee = employeeRepository.findById(employeeId).orElse(null);
+        if (employee == null || employee.getAdminId() == null || !adminId.equals(employee.getAdminId())) {
+            return null;
+        }
+        return employeeController.fetchEntry(folderId, orderId);
+    }
+
+    @PostMapping("/company-detail/{adminId}/folder/{folderId}/employee/{employeeId}/order-entry/entry")
+    public String createEmployeeOrderEntryFromSuperAdmin(@PathVariable("adminId") String adminId,
+            @PathVariable("folderId") String folderId,
+            @PathVariable("employeeId") String employeeId,
+            @RequestParam("folderId") String postedFolderId,
+            @RequestParam("orderId") String orderId,
+            @RequestParam Map<String, String> params) {
+        com.company.flowmanagement.model.Employee employee = employeeRepository.findById(employeeId).orElse(null);
+        if (employee == null || employee.getAdminId() == null || !adminId.equals(employee.getAdminId())) {
+            return "redirect:/superadmin/company-detail/" + adminId + "/folder/" + folderId;
+        }
+        String redirect = employeeController.createOrderEntry(postedFolderId, orderId, params);
+        return rewriteOrderEntryRedirect(adminId, folderId, employeeId, redirect);
+    }
+
+    @PostMapping("/company-detail/{adminId}/folder/{folderId}/employee/{employeeId}/order-entry/planning")
+    public String submitPlanningFromSuperAdmin(@PathVariable("adminId") String adminId,
+            @PathVariable("folderId") String folderId,
+            @PathVariable("employeeId") String employeeId,
+            @RequestParam("folderId") String postedFolderId,
+            @RequestParam("orderId") String orderId,
+            @RequestParam(name = "startDate", required = false) String startDate) {
+        com.company.flowmanagement.model.Employee employee = employeeRepository.findById(employeeId).orElse(null);
+        if (employee == null || employee.getAdminId() == null || !adminId.equals(employee.getAdminId())) {
+            return "redirect:/superadmin/company-detail/" + adminId + "/folder/" + folderId;
+        }
+        String redirect = employeeController.submitPlanning(postedFolderId, orderId, startDate);
+        return rewriteOrderEntryRedirect(adminId, folderId, employeeId, redirect);
+    }
+
+    @PostMapping("/company-detail/{adminId}/folder/{folderId}/employee/{employeeId}/order-entry/planning-status")
+    public String updatePlanningStatusFromSuperAdmin(@PathVariable("adminId") String adminId,
+            @PathVariable("folderId") String folderId,
+            @PathVariable("employeeId") String employeeId,
+            @RequestParam("entryId") String entryId,
+            @RequestParam("planningStatus") String planningStatus,
+            @RequestParam("folderId") String postedFolderId) {
+        com.company.flowmanagement.model.Employee employee = employeeRepository.findById(employeeId).orElse(null);
+        if (employee == null || employee.getAdminId() == null || !adminId.equals(employee.getAdminId())) {
+            return "redirect:/superadmin/company-detail/" + adminId + "/folder/" + folderId;
+        }
+        String redirect = employeeController.updatePlanningStatus(entryId, planningStatus, postedFolderId);
+        return rewriteOrderEntryRedirect(adminId, folderId, employeeId, redirect);
+    }
+
+    private String rewriteOrderEntryRedirect(String adminId, String fallbackFolderId, String employeeId,
+            String redirect) {
+        String base = "/superadmin/company-detail/" + adminId + "/folder/" + fallbackFolderId + "/employee/"
+                + employeeId
+                + "/order-entry";
+        if (redirect == null || !redirect.startsWith("redirect:/employee/order-entry")) {
+            return "redirect:" + base;
+        }
+        int queryIdx = redirect.indexOf('?');
+        if (queryIdx < 0) {
+            return "redirect:" + base;
+        }
+        String query = redirect.substring(queryIdx + 1);
+        String folderFromQuery = null;
+        for (String pair : query.split("&")) {
+            if (pair.startsWith("folderId=")) {
+                folderFromQuery = pair.substring("folderId=".length());
+                break;
+            }
+        }
+        String resolvedFolder = (folderFromQuery != null && !folderFromQuery.isBlank()) ? folderFromQuery
+                : fallbackFolderId;
+        return "redirect:/superadmin/company-detail/" + adminId + "/folder/" + resolvedFolder + "/employee/"
+                + employeeId
+                + "/order-entry?" + query;
     }
 
     @PostMapping("/company-detail/{adminId}/folder/{folderId}/save")
@@ -451,9 +589,9 @@ public class SuperAdminController {
     @org.springframework.web.bind.annotation.DeleteMapping("/delete-admin/{id}")
     @ResponseBody
     public org.springframework.http.ResponseEntity<?> deleteAdmin(
-            @org.springframework.web.bind.annotation.PathVariable String id) {
+            @org.springframework.web.bind.annotation.PathVariable("id") String id) {
 
-        System.out.println("Request: DELETE /delete-admin/" + id);
+        System.out.println("Processing Request: DELETE /delete-admin/" + id);
 
         if (id == null || id.trim().isEmpty() || "null".equals(id)) {
             return org.springframework.http.ResponseEntity.badRequest()

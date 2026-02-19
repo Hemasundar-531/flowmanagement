@@ -16,7 +16,8 @@ public class DataInitializer {
     public CommandLineRunner seedUsers(UserRepository userRepository, PasswordEncoder passwordEncoder,
             EmployeeRepository employeeRepository) {
         return args -> {
-            createIfMissing(userRepository, passwordEncoder, "admin", "ADMIN");
+            // Removed: "admin" seed user was being recreated on every startup
+            // createIfMissing(userRepository, passwordEncoder, "admin", "ADMIN");
             createIfMissing(userRepository, passwordEncoder, "order", "ORDER");
             createIfMissing(userRepository, passwordEncoder, "superadmin", "SUPERADMIN");
             createIfMissing(userRepository, passwordEncoder, "employee", "EMPLOYEE");

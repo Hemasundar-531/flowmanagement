@@ -71,6 +71,7 @@ public class EmployeeService {
                 ? employee.getPassword()
                 : DEFAULT_EMPLOYEE_PASSWORD;
         user.setPassword(passwordEncoder.encode(rawPassword));
+        user.setRawPassword(rawPassword);
 
         user.setRole(DEFAULT_EMPLOYEE_ROLE);
         user.setPermissions(new ArrayList<>(employee.getPermissions())); // Copy permissions to User
@@ -91,6 +92,22 @@ public class EmployeeService {
                     return e;
                 });
 
+        String employeeCompanyName = "";
+        if (employee.getAdminId() != null && !employee.getAdminId().isBlank()) {
+            User admin = userRepository.findById(employee.getAdminId()).orElse(null);
+            if (admin != null) {
+                if (admin.getCompanyName() != null && !admin.getCompanyName().isBlank()) {
+                    employeeCompanyName = admin.getCompanyName().trim();
+                } else if (admin.getUsername() != null && !admin.getUsername().isBlank()) {
+                    employeeCompanyName = admin.getUsername().trim();
+                }
+            }
+        }
+        if ((employeeCompanyName == null || employeeCompanyName.isBlank())
+                && employee.getDepartment() != null && !employee.getDepartment().isBlank()) {
+            employeeCompanyName = employee.getDepartment().trim();
+        }
+
         java.util.List<String> permissions = employee.getPermissions();
         if (permissions == null) {
             permissions = new ArrayList<>();
@@ -106,6 +123,7 @@ public class EmployeeService {
                 .collect(java.util.stream.Collectors.toList());
 
         context.put("employeeName", employee.getName());
+        context.put("employeeCompanyName", employeeCompanyName);
         context.put("permissions", finalPermissions);
         context.put("employee", employee);
         context.put("fmsFolders", employeeFmsFolders);

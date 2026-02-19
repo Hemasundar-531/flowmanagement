@@ -924,9 +924,9 @@
                                     <td>
                                         <select name="responsiblePerson" class="edit-select">
                                             <option value="">Select</option>
-                                            <option th:each="emp : ${employees}" th:value="${emp.username}"
-                                                th:text="${emp.username}"
-                                                th:selected="${emp.username == step.responsiblePerson}">Employee
+                                            <option th:each="emp : ${employees}" th:value="${emp.name}"
+                                                th:text="${emp.name}"
+                                                th:selected="${emp.name == step.responsiblePerson}">Employee
                                             </option>
                                         </select>
                                     </td>
@@ -956,8 +956,8 @@
                                     <td>
                                         <select name="responsiblePerson" class="edit-select">
                                             <option value="">Select</option>
-                                            <option th:each="emp : ${employees}" th:value="${emp.username}"
-                                                th:text="${emp.username}">Employee</option>
+                                            <option th:each="emp : ${employees}" th:value="${emp.name}"
+                                                th:text="${emp.name}">Employee</option>
                                         </select>
                                     </td>
                                     <td>

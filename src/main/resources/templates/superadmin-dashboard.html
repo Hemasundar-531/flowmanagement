@@ -134,6 +134,7 @@
             align-items: center;
         }
 
+
         .hero-btn {
             border: none;
             border-radius: 8px;
@@ -942,7 +943,6 @@
                         assigned order details and process configurations.</p>
                 </div>
                 <div class="hero-actions">
-
                     <button class="hero-btn hero-btn-alt" data-bs-toggle="modal" data-bs-target="#createAdminModal">
                         + Create Admin
                     </button>
@@ -1094,19 +1094,19 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="createFlowModalLabel">Create New Flow</h5>
+                    <h5 class="modal-title" id="createFlowModalLabel">Create New FMS</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div id="createFlowError" class="alert alert-danger d-none" role="alert"></div>
                     <form id="createFlowForm">
                         <div class="mb-3">
-                            <label for="flowName" class="form-label">Flow Name</label>
+                            <label for="flowName" class="form-label">FMS Name</label>
                             <input type="text" class="form-control" id="flowName" name="name"
-                                placeholder="Enter flow name" required>
+                                placeholder="Enter FMS name" required>
                         </div>
                         <div class="d-grid">
-                            <button type="submit" id="createFlowBtn" class="btn btn-primary">Create Flow</button>
+                            <button type="submit" id="createFlowBtn" class="btn btn-primary">Save</button>
                         </div>
                     </form>
                 </div>
@@ -1170,6 +1170,7 @@
         const assignFlowModalEl = document.getElementById('assignFlowModal');
         const createFlowModal = createFlowModalEl ? new bootstrap.Modal(createFlowModalEl) : null;
         const assignFlowModal = assignFlowModalEl ? new bootstrap.Modal(assignFlowModalEl) : null;
+
 
         document.getElementById('createFlowForm')?.addEventListener('submit', async function (e) {
             e.preventDefault();

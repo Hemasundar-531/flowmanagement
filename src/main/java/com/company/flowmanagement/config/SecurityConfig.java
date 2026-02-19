@@ -31,6 +31,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/static/**", "/uploads/**").permitAll()
+                        .requestMatchers("/debug/**").permitAll()
                         .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPERADMIN")
                         .requestMatchers("/superadmin/**").hasRole("SUPERADMIN")
 
